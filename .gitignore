@@ -1,0 +1,5 @@
+/node_modules
+/.hmr
+/build
+.env
+.env.testing
