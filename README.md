@@ -3,7 +3,7 @@
 ## What it provides
 * Express with HMR
 * MongoDB, Mongoose
-* Testing with Mocha, Chai in watch mode
+* Testing with Mocha, Chai with watch mode
 
 ### Available commands
 ```javascript
@@ -16,4 +16,4 @@ npm run clean // Remove build files
 ### Customize
 .env.defaults: is provided with some common defaults, override these settings with your own in a .env file.
 
-Create a .env.testing file to set specific settings to use during testings.
+Create a .env.testing file to set specific settings to use during testing.

@@ -30,7 +30,7 @@ module.exports = {
         new webpack.NoEmitOnErrorsPlugin(),
         new webpack.DefinePlugin({
             "process.env": {
-                "BUILD_TARGET": 'server'
+                "BUILD_TARGET": JSON.stringify('server')
             }
         })
     ],
