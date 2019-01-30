@@ -36,7 +36,11 @@ module.exports = {
     ],
     resolve: {
         alias: {
-            '@src': path.resolve(__dirname, 'src')
+            '@src': path.resolve(__dirname, 'src'),
+            '@routes': path.resolve(__dirname, 'src/routes'),
+            '@models': path.resolve(__dirname, 'src/models'),
+            '@controllers': path.resolve(__dirname, 'src/controllers'),
+            '@fixtures': path.resolve(__dirname, 'src/__test__/fixtures')
         }
     }
 }
