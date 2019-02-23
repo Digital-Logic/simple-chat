@@ -8,7 +8,6 @@ function connect() {
     function _connect() {
         return mongoose.connect(`mongodb://${process.env.DB_HOST}:27017/${process.env.DB_NAME}?authSource=${process.env.DB_NAME}`, {
             useNewUrlParser: true,
-            promiseLibrary: global.Promise,
             user: process.env.DB_USER,
             pass: process.env.DB_PWD
         })

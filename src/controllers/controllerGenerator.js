@@ -44,7 +44,7 @@ function deleteOne(model) {
 function updateOne(model) {
     return function _updateOne(req, res, next) {
         return req.resource
-                .update(req.body, { runValidators: true }).exec()
+                .updateOne(req.body, { runValidators: true }).exec()
                     // update was successful, get the new document
                 .then(result => model.findById(req.resource.id).exec())
                     // send the updated document back to the user

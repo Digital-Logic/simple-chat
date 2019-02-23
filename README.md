@@ -17,8 +17,6 @@ npm run test  // Run tests through Mocha / Chai (with watch mode enabled)
 npm run clean // Remove build files
 ```
 
-
-
 ### Env Variables
 Common env variables are injected into the built bundle, unless overrides are provided.
 All other are expected to be injected on runtime.
