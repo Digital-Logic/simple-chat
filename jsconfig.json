@@ -8,8 +8,9 @@
             "@models/*": ["src/models/*"],
             "@routes/*": ["src/routes/*"],
             "@controllers/*": ["src/controllers/*"],
+            "@views/*": ["src/views/*"],
             "@fixtures": ["src/__test__/fixtures/index"]
         }
     },
-    "exclude": ["node_modules", "build", ".hmr"]
+    "exclude": ["build", ".hmr"]
 }

@@ -23,15 +23,18 @@ module.exports = {
                     { loader: 'babel-loader' }
                 ],
                 exclude: /node_modules/
+            },{
+                test: /\.pug$/,
+                use: [
+                    { loader: 'pug-loader' }
+                ]
             }
         ]
     },
     plugins: [
         new webpack.NoEmitOnErrorsPlugin(),
         new webpack.DefinePlugin({
-            "process.env": {
-                "BUILD_TARGET": JSON.stringify('server')
-            }
+            "process.env.BUILD_TARGET": JSON.stringify('server')
         })
     ],
     resolve: {
@@ -40,6 +43,7 @@ module.exports = {
             '@routes': path.resolve(__dirname, 'src/routes'),
             '@models': path.resolve(__dirname, 'src/models'),
             '@controllers': path.resolve(__dirname, 'src/controllers'),
+            '@views': path.resolve(__dirname, 'src/views'),
             '@fixtures': path.resolve(__dirname, 'src/__test__/fixtures')
         }
     }

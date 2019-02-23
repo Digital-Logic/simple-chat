@@ -2,7 +2,6 @@ const webpack = require('webpack');
 const merge = require('webpack-merge');
 const common = require('./webpack.config.common');
 const Dotenv = require('dotenv-webpack');
-const path = require('path');
 
 const config = merge.strategy({
     output: "replace"
@@ -21,9 +20,8 @@ const config = merge.strategy({
             defaults: true
         }),
         new webpack.DefinePlugin({
-            "process.env": {
-                "NODE_ENV": JSON.stringify('testing')
-            }
+            "process.env.NODE_ENV": JSON.stringify('testing'),
+            "process.env.DB_CONNECT_RETRY": JSON.stringify(false)
         })
     ]
 });
