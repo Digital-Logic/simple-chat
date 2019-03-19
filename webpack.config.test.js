@@ -21,7 +21,8 @@ const config = merge.strategy({
         }),
         new webpack.DefinePlugin({
             "process.env.NODE_ENV": JSON.stringify('testing'),
-            "process.env.DB_CONNECT_RETRY": JSON.stringify(false)
+            "process.env.DB_CONNECT_RETRY": JSON.stringify(false),
+            "process.env.PORT": JSON.stringify(4040)
         })
     ]
 });

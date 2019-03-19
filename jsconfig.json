@@ -6,10 +6,8 @@
         "baseUrl": "./",
         "paths": {
             "@src/*": ["src/*"],
-            "@models/*": ["src/models/*"],
-            "@routes/*": ["src/routes/*"],
-            "@controllers/*": ["src/controllers/*"],
-            "@views/*": ["src/views/*"],
+            "@config": ["src/config.js"],
+            "@utils": ["src/utils/index.js"],
             "@fixtures": ["src/__test__/fixtures/index"]
         }
     },

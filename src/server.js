@@ -12,10 +12,10 @@ connect();
 setupMiddleware(app);
 
 
+
 app.all('*', (req, res) => {
     res.json({ message: "Hello World!"});
 });
-
 
 setupErrorHandlers(app);
 

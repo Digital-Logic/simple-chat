@@ -40,10 +40,9 @@ module.exports = {
     resolve: {
         alias: {
             '@src': path.resolve(__dirname, 'src'),
-            '@routes': path.resolve(__dirname, 'src/routes'),
-            '@models': path.resolve(__dirname, 'src/models'),
-            '@controllers': path.resolve(__dirname, 'src/controllers'),
             '@views': path.resolve(__dirname, 'src/views'),
+            '@config': path.resolve(__dirname, 'src/config.js'),
+            '@utils': path.resolve(__dirname, 'src/utils'),
             '@fixtures': path.resolve(__dirname, 'src/__test__/fixtures')
         }
     }

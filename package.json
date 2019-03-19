@@ -33,11 +33,15 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.3.1",
+    "@casl/ability": "^3.0.1",
+    "@casl/mongoose": "^2.3.1",
+    "bcrypt": "^3.0.5",
     "body-parser": "^1.18.3",
     "express": "^4.16.4",
     "mongodb": "^3.1.13",
     "mongoose": "^5.4.7",
     "morgan": "^1.9.1",
+    "validator": "^10.11.0",
     "winston": "^3.2.1",
     "winston-daily-rotate-file": "^3.7.0"
   }
