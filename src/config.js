@@ -18,20 +18,35 @@ if (isNaN(server.PORT))
 if (server.env !== 'development' && server.env !== 'production' && server.env !== 'testing')
     throw new Error(`ConfigError: unknown NODE_ENV: ${server.env}`);
 
-const jwtExp = process.env.JWT_EXP;
-const jwtSecret = process.env.JWT_SECRET;
-if (!jwtSecret || jwtSecret.length < 8)
-    throw new Error("JWT Secret is too short.");
+const jwt = {
+    auth: {
+        secret: process.env.JWT_AUTH_SECRET,
+        exp: process.env.JWT_AUTH_EXP
+    },
+    refresh: {
+        secret: process.env.JWT_REFRESH_SECRET,
+        exp: process.env.JWT_REFRESH_EXP
+    },
+    reset: {
+        secret: process.env.JWT_RESET_SECRET,
+        exp: process.env.JWT_RESET_EXP
+    }
+}
+
+for (let [key, obj] of Object.entries(jwt)) {
+    if (obj.secret && obj.secret.length < 8) {
+        throw new Error(`JWT ${key} Secret is to short`)
+    }
+}
 
 const bcryptSalt = Number(process.env.BCRYPT_SALT);
 if(isNaN(bcryptSalt))
     throw new Error("ConfigError: BCRYPT_SALT is not a valid number.");
 
 
-export {
-    jwtExp,
-    jwtSecret,
-    bcryptSalt,
+export default {
+    jwt,
     db,
-    server
+    server,
+    bcryptSalt
 };

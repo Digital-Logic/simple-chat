@@ -1,12 +1,12 @@
 import http from 'http';
 import app from './server';
-import { server as serverConfig } from './config';
+import config from './config';
 
 const server = http.createServer(app);
 let curApp = app;
 
-server.listen(serverConfig.PORT, () => {
-    console.log(`Server listening on: ${serverConfig.PORT}`);
+server.listen(config.server.PORT, () => {
+    console.log(`Server listening on: ${config.server.PORT}`);
 });
 
 if(module.hot) {

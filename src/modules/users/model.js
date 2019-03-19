@@ -1,7 +1,7 @@
 import { Schema } from 'mongoose';
 import { isEmail } from 'validator';
 import bcrypt from 'bcrypt';
-import { bcryptSalt } from '@config';
+import config from '@config';
 import { retrieveOrCreate } from '@utils';
 
 const modelName = "User";
@@ -42,7 +42,7 @@ const userSchema = new Schema(schema, { timestamps: true });
 userSchema.pre('save', function() {
     return new Promise( (resolve, reject) => {
         if (this.isModified('pwd')) {
-            bcrypt.hash(this.pwd, bcryptSalt)
+            bcrypt.hash(this.pwd, config.bcryptSalt)
                 .then(encodedPwd => {
                     this.pwd = encodedPwd;
                     resolve();
@@ -59,6 +59,7 @@ userSchema.methods.checkPassword = function(pwd) {
         .catch(e => false);
 }
 
+// If this model already exist, retrieve it, else create it.
 const model = retrieveOrCreate(modelName, userSchema);
 
 export {
