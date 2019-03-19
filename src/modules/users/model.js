@@ -3,6 +3,7 @@ import { isEmail } from 'validator';
 import bcrypt from 'bcrypt';
 import config from '@config';
 import { retrieveOrCreate } from '@utils';
+import { ROLES } from '../auth/abilities';
 
 const modelName = "User";
 
@@ -25,9 +26,10 @@ const schema = {
         select: false
     },
     roles: {
-        type: [String],
+        type: String,
+        enum: Object.values(ROLES),
         required: true,
-        default: ['User']
+        default: ROLES.USER
     },
     disabled: {
         type: Boolean,

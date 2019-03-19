@@ -19,6 +19,7 @@
     "@babel/preset-env": "^7.3.4",
     "babel-loader": "^8.0.5",
     "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
     "chai-http": "^4.2.1",
     "dotenv-webpack": "^1.7.0",
     "mocha": "^5.2.0",
