@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { findAll } from './services';
+import { findAll, findOne, updateOne, deleteOne } from './services';
 
 function config(app) {
     const router = new Router();
@@ -7,6 +7,11 @@ function config(app) {
 
     router.route('/')
         .get(findAll);
+
+    router.route('/:id')
+        .get(findOne)
+        .put(updateOne)
+        .delete(deleteOne);
 }
 
 export default config;

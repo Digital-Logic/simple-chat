@@ -34,7 +34,11 @@ module.exports = {
     plugins: [
         new webpack.NoEmitOnErrorsPlugin(),
         new webpack.DefinePlugin({
-            "process.env.BUILD_TARGET": JSON.stringify('server')
+            "process.env.BUILD_TARGET": JSON.stringify('server'),
+            "process.env.JWT_ACCESS_EXP": JSON.stringify('8h'),
+            "process.env.JWT_REFRESH_EXP": JSON.stringify('10d'),
+            "process.env.JWT_RESET_EXP": JSON.stringify('20m'),
+            "process.env.BCRYPT_SALT": JSON.stringify(8), // Use a high value in production
         })
     ],
     resolve: {

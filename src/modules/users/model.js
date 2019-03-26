@@ -4,12 +4,14 @@ import bcrypt from 'bcrypt';
 import config from '@config';
 import { retrieveOrCreate } from '@utils';
 import { ROLES } from '../auth/abilities';
+import { Conflict } from 'http-errors';
 
 const modelName = "User";
 
 const schema = {
     email: {
         type: String,
+        trim: true,
         validate: {
             validator(value) {
                 return isEmail(String(value));
@@ -17,7 +19,22 @@ const schema = {
             message: "Email address is not valid."
         },
         required: [true, "Email address is required."],
-        unique: [true, "Email address is already used."]
+        unique: true
+    },
+    firstName: {
+        type: String,
+        trim: true,
+        required: false
+    },
+    lastName: {
+        type: String,
+        trim: true,
+        required: false
+    },
+    accountVerified: {
+        type: Boolean,
+        default: false,
+        required: true
     },
     pwd: {
         type: String,
@@ -27,6 +44,7 @@ const schema = {
     },
     roles: {
         type: String,
+        trim: true,
         enum: Object.values(ROLES),
         required: true,
         default: ROLES.USER
@@ -35,11 +53,15 @@ const schema = {
         type: Boolean,
         default: false,
         required: true
+    },
+    deleted: {
+        type: Boolean,
+        default: false,
+        required: true
     }
 }
 
 const userSchema = new Schema(schema, { timestamps: true });
-
 
 userSchema.pre('save', function() {
     return new Promise( (resolve, reject) => {
@@ -54,6 +76,14 @@ userSchema.pre('save', function() {
             resolve();
         }
     });
+});
+
+userSchema.post('save', function(err, doc, next) {
+    if (err.name === 'MongoError' && err.code === 11000) {
+        next(new Conflict('Email must be unique.'));
+    } else {
+        next(err);
+    }
 });
 
 userSchema.methods.checkPassword = function(pwd) {

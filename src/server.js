@@ -18,6 +18,8 @@ for(let [name, config] of Object.entries(Modules)) {
     config(app);
 }
 
+app.use(express.static('public'));
+
 app.all('*', (req, res) => {
     res.json({ message: "Hello World!"});
 });

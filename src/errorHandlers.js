@@ -1,4 +1,7 @@
 import logger from './Logger';
+import { Unauthorized, Forbidden, BadRequest, Conflict } from 'http-errors';
+import { ForbiddenError } from '@casl/ability';
+import config from './config';
 
 /**
  * Handles body parser errors
@@ -15,15 +18,7 @@ function bodyParserHandler (err, req, res, next) {
     err.type === 'parameters.too.many' ||
     err.type === 'charset.unsupported' )
     {
-
-        logger.log({
-            level: 'error',
-            message: err.message
-        });
-        res.status(err.statusCode)
-            .send({
-                error: err.expose ? err.message : "Invalid Request."
-            });
+        next(new BadRequest(err.message));
     } else {
         next(err);
     }
@@ -33,8 +28,8 @@ function bodyParserHandler (err, req, res, next) {
  * Handles model validation errors
  *
  */
-
 function modelValidation (err, req, res, next) {
+
     if (err.name === 'ValidationError') {
 
         const errorMessage = Object.entries(err.errors).reduce( (acc, [key, value]) => {
@@ -42,18 +37,41 @@ function modelValidation (err, req, res, next) {
             return acc;
         },{});
 
-        // Log the error
-        logger.log({
-            level: 'error',
-            message: `Path ${req.path} ${JSON.stringify(errorMessage)}`
-        });
+        next(new BadRequest(JSON.stringify(errorMessage)));
+    } else {
+        next(err);
+    }
+}
 
-        // Sent message to client
-        res.status(400)
-            .send({
-                //error: err.errors.subject.message
-                error: errorMessage
-            });
+/**
+ * Token validation errors errors
+ */
+function TokenValidationErrors (err, req, res, next) {
+    if (err.name) {
+        switch (err.name) {
+            case 'TokenExpiredError':
+                next(new Unauthorized(err.message))
+            break;
+
+            case 'JsonWebTokenError':
+                next(new Unauthorized(err.message))
+            break;
+
+            case 'NotBeforeError':
+                next(new Unauthorized(err.message))
+            break;
+
+            default:
+                next(err);
+        }
+    } else {
+        next(err);
+    }
+}
+
+function aclErrors(err, req, res, next) {
+    if (err instanceof ForbiddenError) {
+        next(new Forbidden(err.message));
     } else {
         next(err);
     }
@@ -62,20 +80,45 @@ function modelValidation (err, req, res, next) {
 /**
  * Generic error handler
  */
-
  function genericErrorHandler(err, req, res, next) {
-     logger.log({
-         level: 'error',
-         message: err.message
-     });
 
-     res.status(500)
-        .send({ error: "Internal server error, Sorry for the inconvenience."});
+    const serverErrorMessage = "Internal server error.";
+
+    if (err.status) {
+        switch(err.status) {
+            case Conflict.statusCode:
+            case BadRequest.statusCode:
+            case Unauthorized.statusCode:
+            case Forbidden.statusCode:
+                logger.log({level: 'info', message: err.message})
+            break;
+
+            default:
+                logger.log({level: 'error', message: err.message });
+        }
+
+        // Send a formated response
+        res.status(err.status)
+            .json({
+                error: config.server.env !== 'production' || err.expose ? err.message : serverErrorMessage
+            });
+
+    } else {
+        logger.log({
+            level: 'error',
+            message: err.message
+        });
+
+        res.status(500)
+            .json({ error: serverErrorMessage });
+    }
  }
 
 function setupErrorHandlers (app) {
     app.use(bodyParserHandler);
     app.use(modelValidation);
+    app.use(TokenValidationErrors);
+    app.use(aclErrors);
 
     // the genericErrorHandler must be the last errorHandler called
     app.use(genericErrorHandler);

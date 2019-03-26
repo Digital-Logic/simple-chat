@@ -1,0 +1,15 @@
+extends ../mail_template.pug
+
+block mainContent
+    -
+        var textStyles = {
+            "font-size": "16px",
+            "line-height": "20px",
+            "padding": "10px 10px 10px 10px",
+            "color": "#666666",
+            "font-family": "Roboto, sans-serif"
+        }
+
+    p(style=textStyles) Hi #{name},
+    p(style=textStyles) Thank you for creating a new account at #{domain}.
+    p(style=textStyles) To activate your account, please click on this link #[a(href=link target="_blank") #{link}].

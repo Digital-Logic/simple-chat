@@ -1,36 +1,45 @@
-import { AbilityBuilder, Ability } from '@casl/ability';
-import { modelName as UserModelName } from '../users/model';
+import { AbilityBuilder } from '@casl/ability';
+import { model as User } from '../users/model';
 
 const ROLES = Object.freeze({
-    USER: 'User',
-    MODERATOR: 'Moderator',
-    ADMIN: 'Admin'
-})
+    USER: 'USER',
+    MODERATOR: 'MODERATOR',
+    ADMIN: 'ADMIN'
+});
 
 
 function defineAbilitiesFor(user) {
-    const { rules, can } = AbilityBuilder.extract();
-    // Anonymous_abilities
+    return AbilityBuilder.define((can, cannot) => {
+        // Anonymous and all accounts
+        can('create', User, ['email', 'firstName', 'lastName', 'pwd']);
+        can('read', User, ['email']);
 
+        // Role based abilities
+        if (user) {
+            // Global user abilities
+            can('read', User, ['email', 'firstName', 'lastName', 'roles']);
+            can('read', User, ['email', 'firstName', 'lastName', 'roles', 'createdAt', 'updatedAt', 'disabled', 'accountVerified'], { _id: user.id});
+            can('update', User, ['email', 'firstName', 'lastName'], { _id: user.id });
 
-    // Role based abilities
-    if (user) {
-        switch(user.roles) {
-            case ROLES.USER:
-                can('read', UserModelName);
+            switch(user.roles) {
 
-            break;
-            case ROLES.MODERATOR:
+                case ROLES.USER:
+                break;
+                case ROLES.MODERATOR:
+                    // can update, delete own account info
+                    // can update others account info
+                    can(['update'], User);
+                    cannot(['update'], User, { role: ROLES.ADMIN });
 
-            break;
-            case ROLES.ADMIN:
-                can('manage', UserModelName);
-            break;
+                break;
+                case ROLES.ADMIN:
+                    can('manage', User);
+                break;
+            }
         }
-    }
-
-    return new Ability(rules);
+    });
 }
+export default defineAbilitiesFor;
 
 export {
     ROLES,

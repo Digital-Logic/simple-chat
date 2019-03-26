@@ -14,5 +14,15 @@ if(module.hot) {
         server.removeListener('request', curApp);
         server.on('request', app);
         curApp = app;
+
+        // disconnect()
+        //     .then(connect())
+        //     .then(() => {
+
+            // })
+            // .catch(e => {
+            // .catch(e => {
+            //     console.log(e);
+            // });
     });
 }

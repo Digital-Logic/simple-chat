@@ -11,7 +11,7 @@ const logger = winston.createLogger({
             filename: 'error.log',
             dirname: 'logs',
             datePattern: 'YYYY-MM-DD',
-            zippedArchive: true,
+            zippedArchive: false,
             maxFiles: '14d',
             level: 'error',
             handleExceptions: true
@@ -20,7 +20,7 @@ const logger = winston.createLogger({
             filename: 'access.log',
             dirname: 'logs',
             datePattern: 'YYYY-MM-DD',
-            zippedArchive: true,
+            zippedArchive: false,
             maxFiles: '14d',
             level: 'info',
             handleExceptions: true
