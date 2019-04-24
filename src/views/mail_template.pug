@@ -2,7 +2,7 @@ doctype html
 html(xmlns="http://www.w3.org/1999/xhtml")
     head
         block title
-            title My Super Cool Website
+            title #{domainName}
         meta(http-equiv="Content-type" content="text/html; charset=utf-8")
         meta(name="viewport" content="width=device-width, initial-scale=1.0")
         link(href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet")
@@ -38,7 +38,7 @@ html(xmlns="http://www.w3.org/1999/xhtml")
             })
             tr
                 td(align="center" style="padding: 10px 0 10px 0;")
-                    h1 My Super Cool Website!
+                    h1 #{domainName}
                     //- img(src="Header image address"
                         alt="My Super Cool Website!" width="400" height="76" style="display: block") //
             tr
@@ -62,10 +62,10 @@ html(xmlns="http://www.w3.org/1999/xhtml")
                                     span(style=textStyles) The Staff
                             tr
                                 td
-                                    a(href="My-Super-Cool-Website.net" style=linkStyles) My-Super-Cool-Website
+                                    a(href=domain target="_blank" style=linkStyles) #{domainName}
                             tr
                                 td
-                                    a(href="mailto:contact@My-Super-Cool-Website.net" style=linkStyles) contact@My-Super-Cool-Website.net
+                                    a(href="mailto:contact@" + domain style=linkStyles) contact@#{domainName}
 
             tr
                 td(height="20")
@@ -75,7 +75,7 @@ html(xmlns="http://www.w3.org/1999/xhtml")
                         tr
                             td(style="color: #ffffff; padding: 5px 10px 5px 10px; font-size: 12px; font-family: Roboto, sans-serif;") Copyright &copy; #{ new Date().getFullYear() }
                             td(align="right" style="color: #ffffff; padding: 5px 10px 5px 10px; font-size: 12px; font-family: Roboto, sans-serif;")
-                                a(href="My-Super-Cool-Website.net" style="color: #ffffff; font-size: 12px; text-decoration: none")
-                                    font(color="#ffffff" face="Roboto, sans-serif;") My-Super-Cool-Website.net
+                                a(href=domain style="color: #ffffff; font-size: 12px; text-decoration: none")
+                                    font(color="#ffffff" face="Roboto, sans-serif;") #{ domainName }
 
 

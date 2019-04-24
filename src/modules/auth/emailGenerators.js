@@ -18,6 +18,7 @@ const verifyAccountEmail = generateEmailTemplate( (user, token) => ({
     html: verifyEmailTemplate({
         name: user.firstName || '',
         domain: config.server.domainAddress,
+        domainName: config.server.domainName,
         link: genTokenLink(token)
     })
 }), EmailTokenGenerator.TYPE.VERIFY_EMAIL );
@@ -31,6 +32,7 @@ const resetPasswordEmail = generateEmailTemplate( (user, token) => ({
     html: resetPasswordTemplate({
         name: user.firstName ? user.firstName : user.email,
         domain: config.server.domainAddress,
+        domainName: config.server.domainName,
         link: genTokenLink(token)
     })
 }), EmailTokenGenerator.TYPE.RESET_PASSWORD);

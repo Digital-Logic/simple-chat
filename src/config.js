@@ -15,6 +15,7 @@ const db = Object.freeze({
 const server = Object.freeze({
     PORT: Number(process.env.PORT),
     env: process.env.NODE_ENV,
+    domainName: process.env.DOMAIN_NAME || "User Auth App",
     domainAddress: process.env.DOMAIN_ADDRESS|| "localhost:3000"
 });
 

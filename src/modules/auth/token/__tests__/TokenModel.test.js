@@ -21,7 +21,10 @@ describe("Token schema test", () => {
 });
 
 describe("Token model test", () => {
-    const user = { id: 'jlasdjflanflwi3fu8fsdf', email: "joe@dirt.com" };
+    const user = {
+        id: 'jlasdjflanflwi3fu8fsdf',
+        email: "joe@dirt.com"
+    };
 
     it("Should be able to store a token", async () => {
         const { token, expires } = await refreshToken.sign(user);
