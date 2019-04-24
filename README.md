@@ -1,9 +1,9 @@
-# Express Template with HMR template
+# User Authentication, ACL, Express template
 
 ## What it provides
 * User authorization, authentication, and access control.
 * Control access on a per route and per field.
-* JWT token support built in
+* JWT token are stored in cookies, eliminating xxs attacks.
 * Bcrypt encryption on user passwords
 * Email validate, password reset using jwt tokens.
 * Express with HMR support through webpack.
@@ -14,10 +14,9 @@
 * Pug template generation / bundling through webpack.
 
 ### Task List
-- [ ] Jwt secret rotation.
-- [ ] API endpoint brute force protection.
+- [ ] Jwt secret key rotation.
+- [ ] API endpoint throttling.
 - [ ] Google, facebook login support.
-- [ ] controller and route generators.
 
 ### Available commands
 ```javascript

@@ -1,4 +1,4 @@
-import { AbilityBuilder } from '@casl/ability';
+import { AbilityBuilder, Ability } from '@casl/ability';
 import { model as User } from '../users/model';
 
 const ROLES = Object.freeze({
@@ -9,33 +9,35 @@ const ROLES = Object.freeze({
 
 
 function defineAbilitiesFor(user) {
+
     return AbilityBuilder.define((can, cannot) => {
-        // Anonymous and all accounts
-        can('create', User, ['email', 'firstName', 'lastName', 'pwd']);
-        can('read', User, ['email']);
 
         // Role based abilities
         if (user) {
             // Global user abilities
-            can('read', User, ['email', 'firstName', 'lastName', 'roles']);
-            can('read', User, ['email', 'firstName', 'lastName', 'roles', 'createdAt', 'updatedAt', 'disabled', 'accountVerified'], { _id: user.id});
-            can('update', User, ['email', 'firstName', 'lastName'], { _id: user.id });
+            can('delete', User, { _id: user.id });
+            can('read', User, ['email', 'firstName', 'lastName', '_id']);
+            can('read', User, ['email', 'firstName', 'lastName', 'role', 'createdAt', 'updatedAt', 'disabled', 'accountVerified', '_id'], { _id: user.id});
+            can('update', User, ['email', 'firstName', 'lastName', 'password'], { _id: user.id });
 
-            switch(user.roles) {
+            switch(user.role) {
 
                 case ROLES.USER:
                 break;
                 case ROLES.MODERATOR:
-                    // can update, delete own account info
-                    // can update others account info
-                    can(['update'], User);
-                    cannot(['update'], User, { role: ROLES.ADMIN });
+                    // can disabled a Users account
+                    can(['update'], User, ['disabled', 'accountVerified'], { role: ROLE.USER });
 
                 break;
                 case ROLES.ADMIN:
+                    // Admin has full control of all user accounts.
                     can('manage', User);
                 break;
             }
+        } else {
+            // Anonymous and all accounts
+            can('create', User, ['email', 'firstName', 'lastName', 'pwd']);
+            can('read', User, ['firstName', 'lastName', '_id']);
         }
     });
 }

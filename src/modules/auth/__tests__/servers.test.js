@@ -4,8 +4,8 @@ import { cleanDB } from '@fixtures';
 import sinon from 'sinon';
 import { model } from '../../users/model';
 import { ROLES } from '../abilities';
-import { sendResetPasswordGenerator, signUpRouteGenerator, resetPassword,
-        signIn, signOut, changePassword, verifyEmailAddress, getAccessToken } from '../services';
+import { sendResetPasswordGenerator, signUpRouteGenerator, resetUserPassword,
+        signIn, signOut, changePassword, getAccessToken, validateToken } from '../services';
 import { defineAbilitiesFor } from '../abilities';
 import { Unauthorized } from 'http-errors';
 import { emailToken } from '../emailGenerators';
@@ -26,7 +26,8 @@ describe("Auth services", () => {
             status: sinon.fake(code => res),
             json: sinon.fake(data => data),
             send: sinon.fake(data => data),
-            end: sinon.fake(data => data)
+            end: sinon.fake(data => data),
+            cookie: sinon.fake((name, token) => {})
         };
         next = sinon.fake(e => e);
 
@@ -53,7 +54,7 @@ describe("Auth services", () => {
 
             expect(action.getCall(0).args[0]).to.have.property('accountVerified').to.be.false;
             expect(action.getCall(0).args[0]).to.have.property('pwd').to.not.equal(req.body.pwd);
-            expect(action.getCall(0).args[0]).to.have.property('roles').to.equal(ROLES.USER);
+            expect(action.getCall(0).args[0]).to.have.property('role').to.equal(ROLES.USER);
         });
 
         it("Should ignore 'role' and 'accountVerified' fields if user does not have permission to enter them.", async () => {
@@ -65,14 +66,14 @@ describe("Auth services", () => {
                 pwd: "asdf1234",
                 firstName: "Bob",
                 lastName: "Barker",
-                roles: ROLES.ADMIN,
+                role: ROLES.ADMIN,
                 accountVerified: true
             };
             await expect(signUp(req, res, next)).to.eventually.be.fulfilled;
 
             expect(action.calledOnce).to.be.true;
             const newUser = action.getCall(0).args[0];
-            expect(newUser.roles).to.equal(ROLES.USER);
+            expect(newUser.role).to.equal(ROLES.USER);
             expect(newUser.accountVerified).to.be.false;
         });
     });
@@ -82,6 +83,7 @@ describe("Auth services", () => {
             const user = await createUser();
             user.accountVerified = true;
             await user.save();
+
             req.body = {
                 email: user.email,
                 pwd: "asdf1234"
@@ -90,9 +92,7 @@ describe("Auth services", () => {
             await signIn(req, res, next);
             expect(next.callCount).to.equal(0, next.call(0));
             expect(res.status.getCall(0).args[0]).to.equal(200);
-            const responseObj = res.send.getCall(0).args[0];
-            await expect(accessToken.verify(responseObj.accessToken)).to.eventually.fulfilled;
-            await expect(refreshToken.verify(responseObj.refreshToken)).to.eventually.fulfilled;
+            expect(res.cookie.callCount).to.equal(2);
         });
 
         it('Should prevent a user from signing-in with invalid password', async () => {
@@ -111,40 +111,13 @@ describe("Auth services", () => {
         });
     });
 
-    describe("SignOut", () => {
-        it("Should let a user sign out", async () => {
-            const user = await createUser();
-            user.accountVerified = true;
-            await expect(user.save()).to.eventually.be.fulfilled;
-            const token = await refreshToken.sign(user);
-
-            req.body = {
-                refreshToken: token
-            };
-
-            await expect(signOut(req, res, next)).to.eventually.be.fulfilled;
-            expect(next.notCalled, next.getCall(0)).to.be.true;
-            expect(res.status.getCall(0).args[0]).to.equal(204);
-        });
-    });
-
-    describe("GetAccessToken", () => {
-        it("Should return a new access token with a refresh token.", async () => {
-            const user = await createUser();
-            user.accountVerified = true;
-            await expect(user.save()).to.eventually.be.fulfilled;
-            const token = await refreshToken.sign(user);
-            req.body.refreshToken = token;
-
-            await expect(getAccessToken(req,res,next)).to.eventually.be.fulfilled;
-            expect(next.notCalled, next.getCall(0)).to.be.true;
-        });
-    });
-
     describe("Reset user password", () => {
         it("Should allow a user to reset there password.", async () => {
             // create a new user
             const user = await createUser();
+            user.accountVerified = true;
+            await user.save();
+            //await verifyAccount(user);
 
             const action = sinon.fake(user => user);
             // Generate our route
@@ -163,16 +136,16 @@ describe("Auth services", () => {
             next.resetHistory(); res.status.resetHistory(); res.json.resetHistory();
             res.send.resetHistory(); res.end.resetHistory();
 
-            // Create token
-            const token = await emailToken.sign(user, { action: emailToken.ACTIONS.RESET_PASSWORD });
+            // // Create token
+            const { token } = await emailToken.sign(user, { type: emailToken.TYPE.RESET_PASSWORD });
 
-            // Reset user password
+            // // Reset user password
             req.body = {
                 token,
                 pwd: 'helloWorld'
             };
 
-            await expect(resetPassword(req, res, next)).to.eventually.be.fulfilled;
+            await expect(resetUserPassword(req, res, next)).to.eventually.be.fulfilled;
             expect(next.notCalled).to.be.true;
             expect(res.status.calledOnce).to.be.true;
             expect(res.status.getCall(0).args[0]).to.equal(200);
@@ -185,33 +158,28 @@ describe("Auth services", () => {
             const user = await createUser();
             // define abilities for the new user
             req.ability = defineAbilitiesFor(user);
-            req.body.pwd = 'helloWorld.';
-            req.user = user;
+            req.body.password = 'asdf1234';
+            req.body.newPassword = 'qwerasdf';
+            req.user = {
+                _id: user.id
+            };
 
             await expect(changePassword(req, res, next)).to.eventually.be.fulfilled;
             expect(next.calledOnce).to.be.false;
-            await expect(user.checkPassword(req.body.pwd)).to.eventually.be.fulfilled;
+            await expect(user.checkPassword(req.body.newPassword)).to.eventually.be.fulfilled;
 
             // verify the database was updated.
             const userCp = await model.findById(user.id);
-            await expect(userCp.checkPassword(req.body.pwd)).to.eventually.be.fulfilled;
+            await expect(userCp.checkPassword(req.body.newPassword)).to.eventually.be.fulfilled;
         });
 
         it('Passwords that do not pass validation, should not be updated', async () => {
             const user = await createUser();
 
             req.ability = defineAbilitiesFor(user);
-            req.body.pwd = "asdf"; // password should be 7 characters long
+            req.body.password = 'asdf1234';
+            req.body.newPassword = "asdf"; // password should be 7 characters long
             req.user = user;
-
-            await expect(changePassword(req, res, next)).to.eventually.be.fulfilled;
-            expect(next.calledOnce).to.be.true;
-            expect(next.getCall(0).args[0].errors.pwd.kind).to.equal('minlength');
-        });
-
-        it('Should not allow a user password to be changed with valid credentials', async () => {
-            req.ability = defineAbilitiesFor();
-            req.pwd = 'helloWorld';
 
             await expect(changePassword(req, res, next)).to.eventually.be.fulfilled;
             expect(next.calledOnce).to.be.true;
@@ -219,9 +187,9 @@ describe("Auth services", () => {
     });
 
     describe("Verify email address route", () => {
-        it("Should verify an email address from a token", async () => {
+        it("Should verify a user account from a token", async () => {
             req.body = {
-                email: "bob@barker.com",
+                email: 'bob@barker.com',
                 pwd: "asdf1234",
                 firstName: "Bob",
                 lastName: "Barker"
@@ -233,10 +201,10 @@ describe("Auth services", () => {
             expect(next.notCalled).to.be.true;
             expect(action.calledOnce).to.be.true;
             const user = action.getCall(0).args[0];
-            const token = await emailToken.sign(user, { action: EmailTokenGenerator.ACTIONS.VERIFY_EMAIL });
+            const token = await emailToken.sign(user, { type: EmailTokenGenerator.TYPE.VERIFY_EMAIL });
 
             req.body = {
-                token
+                ...token
             };
             // Reset spies history
             res.status.resetHistory(); res.json.resetHistory();
@@ -244,12 +212,10 @@ describe("Auth services", () => {
             next.resetHistory();
 
 
-            await expect(verifyEmailAddress(req, res, next)).to.eventually.fulfilled;
-            expect(next.notCalled, next.getCall(0)).to.be.true;
+            await expect(validateToken(req, res, next)).to.eventually.fulfilled;
+            expect(next.notCalled).to.be.true;
             expect(res.status.getCall(0).args[0]).to.equal(200);
-            const response = res.json.getCall(0).args[0];
-            await expect(accessToken.verify(response.accessToken)).to.eventually.be.fulfilled;
-            await expect(refreshToken.verify(response.refreshToken)).to.eventually.be.fulfilled;
+            expect(res.status.callCount).to.equal(1);
         });
     });
 });

@@ -99,9 +99,7 @@ function aclErrors(err, req, res, next) {
 
         // Send a formated response
         res.status(err.status)
-            .json({
-                error: config.server.env !== 'production' || err.expose ? err.message : serverErrorMessage
-            });
+            .json(config.server.env !== 'production' || err.expose ? err.message : serverErrorMessage );
 
     } else {
         logger.log({
@@ -110,7 +108,7 @@ function aclErrors(err, req, res, next) {
         });
 
         res.status(500)
-            .json({ error: serverErrorMessage });
+            .json(serverErrorMessage);
     }
  }
 

@@ -23,13 +23,13 @@ describe("User schema test", () => {
         expect(schema.pwd).to.have.property('minlength');
         expect(schema.pwd).to.have.property('select', false);
     });
-    it("Should have roles field", () => {
-        expect(schema.roles).to.exist
+    it("Should have role field", () => {
+        expect(schema.role).to.exist
             .and.have.property('type').to.equal(String);
 
-        expect(schema.roles).to.have.property('required').to.be.true;
-        expect(schema.roles).to.have.property('default').to.equal(ROLES.USER);
-        expect(schema.roles).to.have.property('required').to.be.true;
+        expect(schema.role).to.have.property('required').to.be.true;
+        expect(schema.role).to.have.property('default').to.equal(ROLES.USER);
+        expect(schema.role).to.have.property('required').to.be.true;
     });
     it("Should have a disabled field", () => {
         expect(schema.disabled).to.exist

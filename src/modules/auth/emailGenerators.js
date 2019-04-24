@@ -5,18 +5,25 @@ import { EmailTokenGenerator } from './token';
 import config from '@config';
 import Logger from '@src/Logger';
 
-const emailToken = new EmailTokenGenerator(config.jwt.reset.secret, config.jwt.reset.exp);
+const emailToken = new EmailTokenGenerator(config.jwt.reset.secret,
+        config.jwt.reset.exp, user => ({ id: user.id }));
 
+/**
+ * @returns {function} verifyAccountEmail(user, data)
+ * @description Generates a validation token, and send the token and an email to the end user
+ */
 const verifyAccountEmail = generateEmailTemplate( (user, token) => ({
     to: user.email,
     subject: 'Please verify your email address.',
     html: verifyEmailTemplate({
-        name: user.firstName ? user.firstName : '',
+        name: user.firstName || '',
         domain: config.server.domainAddress,
         link: genTokenLink(token)
     })
-}), EmailTokenGenerator.ACTIONS.VERIFY_EMAIL );
-
+}), EmailTokenGenerator.TYPE.VERIFY_EMAIL );
+/**
+ * See verifyAccountEmail
+ */
 
 const resetPasswordEmail = generateEmailTemplate( (user, token) => ({
     to: user.email,
@@ -26,25 +33,25 @@ const resetPasswordEmail = generateEmailTemplate( (user, token) => ({
         domain: config.server.domainAddress,
         link: genTokenLink(token)
     })
-}), EmailTokenGenerator.ACTIONS.RESET_PASSWORD);
+}), EmailTokenGenerator.TYPE.RESET_PASSWORD);
 
 
 /**
  * @description Used to create a function that will generate an email template
  * @returns {Function}
  * @param {Function} generatorEmail
- * @param {String} action
+ * @param {String} type - token type
  */
-function generateEmailTemplate(generateEmail, action) {
-    if (typeof generateEmail !== 'function') throw new TypeError("genAuthEmail: genTemplates: is not a function.");
-
+function generateEmailTemplate(generateEmail, type) {
+    if (typeof generateEmail !== 'function') throw new TypeError("generateEmailTemplate: generateEmail: is not a function.");
     /**
      * This function can throw, make sure to catch it in the route handler.
      */
     return async function _Email(user, data) {
-        const token = await emailToken.sign(user, { ...data, action });
+
+        const token = await emailToken.sign(user, { ...data, type });
         // send email
-        const result = await mailers.auth.sendMail(generateEmail(user, token));
+        const result = await mailers.auth.sendMail(generateEmail(user, token.token));
 
         Logger.info(result);
     }

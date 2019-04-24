@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import config from '@config';
+//import config from '@config';
 
 class TokenGenerator {
     constructor(secret, expires, genData=() => ({})) {
@@ -16,15 +16,19 @@ class TokenGenerator {
             jwt.sign({
                     ...data,
                     ...this.genData(user), // generate data based on user
-                    id: user.id
+                    id: user._id
                 }, this.secret, {
-                    subject: user.email,
-                    issuer: config.server.domainAddress,
                     expiresIn: this.expires
-                }, function _sign(err, token) {
+                }, async function _sign(err, token) {
                     if (err)
                         reject(err);
-                    resolve(token);
+
+                    const tokenData = await jwt.decode(token);
+
+                    resolve({
+                        token,
+                        expires: new Date(tokenData.exp * 1000)
+                    });
                 });
         });
     }
@@ -42,23 +46,24 @@ class TokenGenerator {
 
 class EmailTokenGenerator extends TokenGenerator {
 
-    static ACTIONS = Object.freeze({
+    static TYPE = Object.freeze({
         VERIFY_EMAIL: "VERIFY_EMAIL",
         RESET_PASSWORD: 'RESET_PASSWORD'
     });
 
-    ACTIONS = EmailTokenGenerator.ACTIONS;
+    // Provide instance access to the TYPE static property
+    TYPE = EmailTokenGenerator.TYPE;
 
     constructor(secret, expires, genData) {
         super(secret, expires, genData);
     }
 
-    sign(user, { action, data }) {
-        // Check if action is valid
-        if (!EmailTokenGenerator.ACTIONS[action])
-            throw new TypeError("EmailTokenGenerator: sign(user,action): invalid action provided.");
+    sign(user, { type, data }) {
+        // Check if type is valid
+        if (!EmailTokenGenerator.TYPE[type])
+            throw new TypeError("EmailTokenGenerator: sign(user,type): invalid type provided.");
 
-        return super.sign(user, { action, ...data });
+        return super.sign(user, { type, ...data });
     }
 }
 

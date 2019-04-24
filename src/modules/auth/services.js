@@ -1,24 +1,46 @@
 import { model } from '../users/model';
 import Logger from '@src/Logger';
 import { Unauthorized, Forbidden, BadRequest } from 'http-errors';
-import { TokenModel, accessToken, refreshToken, EmailTokenGenerator } from './token';
+import { accessToken, refreshToken } from './token';
 import { verifyAccountEmail, resetPasswordEmail, emailToken } from './emailGenerators';
+import { defineAbilitiesFor } from './abilities';
+
+
+async function getAuth(req, res, next) {
+
+    return res.status(200).json({
+        id: req.user && req.user.id,
+        rules: req.ability && req.ability.rules || defineAbilitiesFor(req.user)
+    });
+}
+
 
 async function signIn(req, res, next) {
+
     const user = await model.findOne({ email: req.body.email }).select('+pwd');
 
     if (user && await user.checkPassword(req.body.pwd)) {
         if (user.accountVerified) {
             try {
-                const aToken = await accessToken.sign(user);
-                const rToken = await refreshToken.sign(user);
+                const access = await accessToken.sign(user);
+                const refresh = await refreshToken.sign(user);
+
+                // Create cookies
+                res.cookie('accessToken', access.token , {
+                    httpOnly: true,
+                    expires: access.expires
+                });
+
+                res.cookie('refreshToken', refresh.token, {
+                    httpOnly: true,
+                    expires: refresh.expires
+                });
 
                 Logger.info(`User signed in: ${user.email}`);
 
-                res.status(200).send({
-                    tokenType: "bearer",
-                    accessToken: aToken,
-                    refreshToken: rToken
+                res.status(200).json({
+                    id: user.id,
+                    rules: defineAbilitiesFor(user).rules
                 });
 
             } catch (e) {
@@ -69,34 +91,50 @@ function signUpRouteGenerator(action) {
     };
 }
 
-async function verifyEmailAddress(req, res, next) {
+const sendEmailValidationCode = sendEmailValidationCodeGenerator(verifyAccountEmail);
+function sendEmailValidationCodeGenerator(action) {
+    return async (req, res, next) => {
+        try {
+            const user = await model.findOne({ email: req.body.email });
+
+            if (user && !user.accountVerified) {
+                // generate token
+                await action(user);
+            }
+            // Send a response regardless of result
+            res.status(204).send();
+        } catch (e) {
+            next(e)
+        };
+    };
+}
+
+
+
+async function validateToken(req, res, next) {
     try {
-        const tokenData = await emailToken.verify(req.body.token);
-        // Is this token being used correctly?
-        if (tokenData.action !== emailToken.ACTIONS.VERIFY_EMAIL)
-            throw new BadRequest();
+        const { id, type } = await emailToken.verify(req.body.token);
 
-        const user = await model.findById(tokenData.id);
-        if (user.accountVerified)
-            throw new BadRequest('Your account has already been verified, please log in.');
+        if (type === emailToken.TYPE.VERIFY_EMAIL) {
 
-        user.accountVerified = true;
-        await user.save({
-                validateBeforeSave: true
-            });
+            const user = await model.findById(id);
+            if (user && !user.accountVerified && !user.disabled) {
+                user.accountVerified = true;
 
-        // generate tokens for the user
-        const aToken = await accessToken.sign(user);
-        const rToken = await refreshToken.sign(user);
-
-        res.status(200).json({
-            tokenType: "bearer",
-            accessToken: aToken,
-            refreshToken: rToken
-        });
-
+                await user.save({
+                    validateBeforeSave: true
+                });
+                // Notify the user that there account is now active.
+                return res.status(200).send("Account Activated");
+            }
+            return res.status(204).send();
+        } else if (type === emailToken.TYPE.RESET_PASSWORD) {
+            // Inform the front-end that the token is valid
+            res.status(200).json({ id, type});
+        }
     } catch (e) {
-        next(e);
+        console.log(e);
+        return next(e);
     }
 }
 
@@ -106,13 +144,21 @@ function sendResetPasswordGenerator(action) {
         try {
             const user = await model.findOne({ email: req.body.email }).lean().exec();
 
-            if (user)
+            if (user && user.accountVerified && !user.disabled)
+            {
                 await action(user);
 
-            res.status(200)
-                .json({
-                    message: "Password reset email sent."
-                });
+                res.status(200)
+                    .json({
+                        message: "Password reset email sent."
+                    });
+            } else {
+                if (!user)
+                    throw new BadRequest("Invalid user account.");
+                else if (!user.accountVerified)
+                    throw new BadRequest("User account has not been activated");
+                else throw new BadRequest("User account disabled.");
+            }
 
         } catch (e) {
             next(e);
@@ -120,87 +166,64 @@ function sendResetPasswordGenerator(action) {
     }
 }
 
-async function resetPassword(req, res, next) {
+async function resetUserPassword(req, res, next) {
     try {
-        const tokenData = await emailToken.verify(req.body.token);
-        if (tokenData.action !== EmailTokenGenerator.ACTIONS.RESET_PASSWORD)
+        const pwd = req.body.pwd;
+        const { id, type} = await emailToken.verify(req.body.token);
+
+        if (type !== emailToken.TYPE.RESET_PASSWORD)
             throw new BadRequest();
 
-        const user = await model.findById(tokenData.id);
-
-        user.pwd = req.body.pwd;
+        const user = await model.findById(id).select('+pwd');
+        user.pwd = pwd;
 
         await user.save({
             validateBeforeSave: true
         });
 
-        res.status(200).json({ message: 'Password has been update.'});
+        res.status(200).send();
+
     } catch(e) {
         next(e);
     }
 }
 
-
 async function changePassword(req, res, next) {
     try {
+
         if (!req.user)
             throw new Unauthorized();
 
-        req.ability.throwUnlessCan('update', req.user);
+        const user = await model.findById(req.user._id).select('+pwd');
 
-        req.user.pwd = req.body.pwd;
+        if (user.id !== req.user._id)
+            return next(new Unauthorized());
 
-        await req.user.save({
+        if (await user.checkPassword(req.body.password))
+        {
+            // update password
+            user.pwd = req.body.newPassword;
+
+            await user.save({
                 validateBeforeSave: true
             });
-    } catch (e) {
-        next(e);
-    }
-}
 
-async function getAccessToken(req,res,next) {
-    try {
-        // verify the token is valid.
-        const tokenData = await refreshToken.verify(req.body.refreshToken);
-
-        // Is token blacklisted?
-        const isBlackListed = await TokenModel.findOne({ token: String(refreshToken) });
-        if (isBlackListed)
-            throw new Forbidden();
-
-        // Can user login?
-        const user = await model.findById(tokenData.id);
-
-
-        if (!user || !user.accountVerified && user.disabled)
-            throw new Forbidden();
-
-        const token = await accessToken.sign(user);
-
-        res.status(200)
-            .json({
-                accessToken: token
-            });
-    } catch (e) {
-        next(e);
-    }
-}
-
-async function signOut(req, res, next) {
-    const token = req.body.refreshToken;
-    try {
-        const tokenData = await refreshToken.verify(token);
-        const foundToken = await TokenModel.findOne({ token });
-        if (!foundToken)
-        {
-            await TokenModel.create({
-                token,
-                exp: Date(tokenData.exp)
-            });
+            return res.status(200).send();
         }
 
-        res.status(204).send();
+        return next(new Unauthorized());
 
+    } catch (e) {
+        next(e);
+    }
+}
+
+function signOut(req, res, next) {
+
+    try {
+        req.universalCookies.remove('refreshToken');
+        req.universalCookies.remove('accessToken');
+        res.status(204).send();
     } catch (e) {
         next(e);
     }
@@ -211,11 +234,63 @@ export {
     signIn,
     signUp,
     signOut,
+    getAuth,
     changePassword,
-    verifyEmailAddress,
+    sendEmailValidationCode,
     signUpRouteGenerator,
-    getAccessToken,
-    resetPassword,
     sendResetPasswordEmail,
-    sendResetPasswordGenerator
+    sendResetPasswordGenerator,
+    validateToken,
+    resetUserPassword
 };
+
+
+
+
+// async function resetPassword(req, res, next) {
+//     try {
+//         const tokenData = await emailToken.verify(req.body.token);
+//         if (tokenData.action !== EmailTokenGenerator.ACTIONS.RESET_PASSWORD)
+//             throw new BadRequest();
+
+//         const user = await model.findById(tokenData.id);
+
+//         user.pwd = req.body.pwd;
+
+//         await user.save({
+//             validateBeforeSave: true
+//         });
+
+//         res.status(200).json({ message: 'Password has been update.'});
+//     } catch(e) {
+//         next(e);
+//     }
+// }
+
+
+// async function verifyEmailAddress(req, res, next) {
+//     try {
+//         const tokenData = await emailToken.verify(req.body.token);
+//         // Is this token being used correctly?
+//         if (tokenData.action !== emailToken.ACTIONS.VERIFY_EMAIL)
+//             throw new BadRequest();
+
+//         const user = await model.findById(tokenData.id);
+
+//         if (!user)
+//             throw new BadRequest("Invalid user account.");
+
+//         if (user.accountVerified)
+//             throw new BadRequest('Your account has already been verified, please log in.');
+
+//         user.accountVerified = true;
+//         await user.save({
+//                 validateBeforeSave: true
+//             });
+
+//         res.status(200).send()
+
+//     } catch (e) {
+//         next(e);
+//     }
+// }

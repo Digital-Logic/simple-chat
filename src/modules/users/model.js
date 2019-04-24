@@ -42,7 +42,7 @@ const schema = {
         required: [true, "Password is required."],
         select: false
     },
-    roles: {
+    role: {
         type: String,
         trim: true,
         enum: Object.values(ROLES),
@@ -50,11 +50,6 @@ const schema = {
         default: ROLES.USER
     },
     disabled: {
-        type: Boolean,
-        default: false,
-        required: true
-    },
-    deleted: {
         type: Boolean,
         default: false,
         required: true

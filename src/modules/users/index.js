@@ -3,7 +3,6 @@ import { findAll, findOne, updateOne, deleteOne } from './services';
 
 function config(app) {
     const router = new Router();
-    app.use('/users', router);
 
     router.route('/')
         .get(findAll);
@@ -12,6 +11,8 @@ function config(app) {
         .get(findOne)
         .put(updateOne)
         .delete(deleteOne);
+
+    app.use('/api/users', router);
 }
 
 export default config;

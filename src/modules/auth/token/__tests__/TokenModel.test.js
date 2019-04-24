@@ -2,7 +2,7 @@ import chai, { expect } from 'chai';
 import chaiAsPromise from 'chai-as-promised';
 import { schema, model } from '../TokenModel';
 import { refreshToken } from '../index';
-import { cleanDB } from '@fixtures';
+
 
 chai.use(chaiAsPromise);
 
@@ -24,7 +24,7 @@ describe("Token model test", () => {
     const user = { id: 'jlasdjflanflwi3fu8fsdf', email: "joe@dirt.com" };
 
     it("Should be able to store a token", async () => {
-        const token = await refreshToken.sign(user);
+        const { token, expires } = await refreshToken.sign(user);
         const tokenData = await refreshToken.verify(token);
         await expect(model.create({ token, exp: Date(tokenData.exp )})).to.eventually.be.fulfilled;
 

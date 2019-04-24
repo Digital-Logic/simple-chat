@@ -15,7 +15,7 @@ const db = Object.freeze({
 const server = Object.freeze({
     PORT: Number(process.env.PORT),
     env: process.env.NODE_ENV,
-    domainAddress: process.env.DOMAIN_ADDRESS|| "localhost:4000"
+    domainAddress: process.env.DOMAIN_ADDRESS|| "localhost:3000"
 });
 
 if (isNaN(server.PORT))
@@ -23,6 +23,7 @@ if (isNaN(server.PORT))
 
 if (server.env !== 'development' && server.env !== 'production' && server.env !== 'testing')
     throw new Error(`ConfigError: unknown NODE_ENV: ${server.env}`);
+
 
 const jwt = {
     access: {
