@@ -3,7 +3,7 @@ html(xmlns="http://www.w3.org/1999/xhtml")
     head
         block title
             title #{domainName}
-        meta(http-equiv="Content-type" content="text/html; charset=utf-8")
+        meta(http-equiv="Content-type" content="text/html; charset=UTF-8")
         meta(name="viewport" content="width=device-width, initial-scale=1.0")
         link(href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet")
 
@@ -39,8 +39,6 @@ html(xmlns="http://www.w3.org/1999/xhtml")
             tr
                 td(align="center" style="padding: 10px 0 10px 0;")
                     h1 #{domainName}
-                    //- img(src="Header image address"
-                        alt="My Super Cool Website!" width="400" height="76" style="display: block") //
             tr
 
             tr(style=textStyles)
@@ -60,12 +58,12 @@ html(xmlns="http://www.w3.org/1999/xhtml")
                             tr
                                 td
                                     span(style=textStyles) The Staff
-                            tr
-                                td
-                                    a(href=domain target="_blank" style=linkStyles) #{domainName}
-                            tr
-                                td
-                                    a(href="mailto:contact@" + domain style=linkStyles) contact@#{domainName}
+                            //- tr
+                            //-     td
+                            //-         a(href=domain target="_blank" style=linkStyles) #{domainName}
+                            //- tr
+                            //-     td
+                            //-         a(href="mailto:contact@" + domain style=linkStyles) contact@#{domainName}
 
             tr
                 td(height="20")

@@ -1,5 +1,6 @@
 import { model } from './model';
-import { BadRequest, Forbidden } from 'http-errors';
+import { BadRequest } from 'http-errors';
+import jwt from 'jsonwebtoken';
 
 function findAll(req, res, next) {
     model.accessibleBy(req.ability, 'read')
@@ -39,32 +40,26 @@ function updateOne(req, res, next) {
                 }
             });
 
-            //console.log(doc);
-
             return doc.save({ validateBeforeSave: true });
         })
         .then(doc => {
             // collect fields that user can view.
-            //console.log(doc);
             const readableFields = model.accessibleFieldsBy(req.ability, 'read');
 
             const responseObj = readableFields.reduce((obj, key) => {
                 obj[key] = doc[key];
                 return obj;
-            },{ });
-            console.log(responseObj);
+            },{});
 
             res.json(responseObj);
         })
         .catch(e => {
-            console.log(e);
             next(e);
         });
 }
 
 function deleteOne(req, res, next) {
     if (!req.params.id) {
-        console.log('Sending error');
         return next(new BadRequest("Invalid user id."));
     }
 
@@ -77,8 +72,15 @@ function deleteOne(req, res, next) {
             if (req.user.id === req.params.id) {
                 // are we deleting the currently logged in user?
                 // Remove auth cookies
-                req.universalCookies.remove('accessToken');
-                req.universalCookies.remove('refreshToken');
+                const tokens = ['refreshToken', 'accessToken'].map( cookie => [cookie, req.cookies[cookie]]);
+
+                tokens.forEach( ([name, token]) => {
+                    const { id, exp } = jwt.decode(token);
+                    res.clearCookie(name, {
+                        httpOnly: true,
+                        expires: new Date(exp * 1000)
+                    });
+                });
             }
             res.status(204).send("User deleted.");
         })

@@ -2,8 +2,7 @@
 
 ## What it provides
 * User authorization, authentication, and access control.
-* Control access on a per route and per field.
-* JWT token are stored in cookies, eliminating xxs attacks.
+* JWT token are stored in cookies.
 * Bcrypt encryption on user passwords
 * Email validate, password reset using jwt tokens.
 * Express with HMR support through webpack.

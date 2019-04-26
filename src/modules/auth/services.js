@@ -4,6 +4,8 @@ import { Unauthorized, Forbidden, BadRequest } from 'http-errors';
 import { accessToken, refreshToken } from './token';
 import { verifyAccountEmail, resetPasswordEmail, emailToken } from './emailGenerators';
 import { defineAbilitiesFor } from './abilities';
+import jwt from 'jsonwebtoken';
+import config from '@config';
 
 
 async function getAuth(req, res, next) {
@@ -28,12 +30,14 @@ async function signIn(req, res, next) {
                 // Create cookies
                 res.cookie('accessToken', access.token , {
                     httpOnly: true,
-                    expires: access.expires
+                    expires: access.expires,
+                    secure: config.server.SSL
                 });
 
                 res.cookie('refreshToken', refresh.token, {
                     httpOnly: true,
-                    expires: refresh.expires
+                    expires: refresh.expires,
+                    secure: config.server.SSL
                 });
 
                 Logger.info(`User signed in: ${user.email}`);
@@ -221,8 +225,17 @@ async function changePassword(req, res, next) {
 function signOut(req, res, next) {
 
     try {
-        req.universalCookies.remove('refreshToken');
-        req.universalCookies.remove('accessToken');
+        const tokens = ['refreshToken', 'accessToken'].map( cookie => [cookie, req.cookies[cookie]]);
+
+        tokens.forEach( ([name, token]) => {
+            const { id, exp } = jwt.decode(token);
+            res.clearCookie(name, {
+                httpOnly: true,
+                expires: new Date(exp * 1000),
+                secure: config.server.SSL
+            });
+        });
+
         res.status(204).send();
     } catch (e) {
         next(e);
@@ -243,54 +256,3 @@ export {
     validateToken,
     resetUserPassword
 };
-
-
-
-
-// async function resetPassword(req, res, next) {
-//     try {
-//         const tokenData = await emailToken.verify(req.body.token);
-//         if (tokenData.action !== EmailTokenGenerator.ACTIONS.RESET_PASSWORD)
-//             throw new BadRequest();
-
-//         const user = await model.findById(tokenData.id);
-
-//         user.pwd = req.body.pwd;
-
-//         await user.save({
-//             validateBeforeSave: true
-//         });
-
-//         res.status(200).json({ message: 'Password has been update.'});
-//     } catch(e) {
-//         next(e);
-//     }
-// }
-
-
-// async function verifyEmailAddress(req, res, next) {
-//     try {
-//         const tokenData = await emailToken.verify(req.body.token);
-//         // Is this token being used correctly?
-//         if (tokenData.action !== emailToken.ACTIONS.VERIFY_EMAIL)
-//             throw new BadRequest();
-
-//         const user = await model.findById(tokenData.id);
-
-//         if (!user)
-//             throw new BadRequest("Invalid user account.");
-
-//         if (user.accountVerified)
-//             throw new BadRequest('Your account has already been verified, please log in.');
-
-//         user.accountVerified = true;
-//         await user.save({
-//                 validateBeforeSave: true
-//             });
-
-//         res.status(200).send()
-
-//     } catch (e) {
-//         next(e);
-//     }
-// }

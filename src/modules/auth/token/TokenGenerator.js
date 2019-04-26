@@ -23,7 +23,7 @@ class TokenGenerator {
                     if (err)
                         reject(err);
 
-                    const tokenData = await jwt.decode(token);
+                    const tokenData = jwt.decode(token);
 
                     resolve({
                         token,

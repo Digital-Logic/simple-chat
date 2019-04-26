@@ -3,6 +3,7 @@ import setupMiddleware from './globalMiddleware';
 import connect from './db';
 import setupErrorHandlers from './errorHandlers';
 import * as Modules from './modules';
+import path from 'path';
 
 const app = express();
 
@@ -18,11 +19,12 @@ for(let [name, config] of Object.entries(Modules)) {
     config(app);
 }
 
-app.use(express.static('public'));
+app.use(express.static('../front-end'));
 
-app.all('*', (req, res) => {
-    res.json({ message: "Hello World!"});
+app.get('*', (req, res) => {
+    res.sendFile(path.resolve('../../front-end/index.html'));
 });
+
 
 setupErrorHandlers(app);
 

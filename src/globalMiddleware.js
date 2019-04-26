@@ -1,7 +1,7 @@
 import bodyParse from 'body-parser';
 import helmet from 'helmet';
 import { setupLoggers } from './Logger';
-import cookiesMiddleware from 'universal-cookie-express';
+import cookieParse from 'cookie-parser';
 
 function useMiddleware (app) {
     app.use(helmet());
@@ -12,7 +12,7 @@ function useMiddleware (app) {
 
     app.use(bodyParse.json());
 
-    app.use(cookiesMiddleware());
+    app.use(cookieParse());
 
     setupLoggers(app);
 }

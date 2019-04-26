@@ -3,7 +3,7 @@ import verifyEmailTemplate from '@views/auth/verify_email.pug';
 import resetPasswordTemplate from '@views/auth/reset_password.pug';
 import { EmailTokenGenerator } from './token';
 import config from '@config';
-import Logger from '@src/Logger';
+import logger from '@src/Logger';
 
 const emailToken = new EmailTokenGenerator(config.jwt.reset.secret,
         config.jwt.reset.exp, user => ({ id: user.id }));
@@ -14,13 +14,14 @@ const emailToken = new EmailTokenGenerator(config.jwt.reset.secret,
  */
 const verifyAccountEmail = generateEmailTemplate( (user, token) => ({
     to: user.email,
-    subject: 'Please verify your email address.',
+    subject: "Please verify your email address.",
     html: verifyEmailTemplate({
         name: user.firstName || '',
         domain: config.server.domainAddress,
         domainName: config.server.domainName,
         link: genTokenLink(token)
-    })
+    }),
+    encoding: 'utf-8'
 }), EmailTokenGenerator.TYPE.VERIFY_EMAIL );
 /**
  * See verifyAccountEmail
@@ -28,13 +29,14 @@ const verifyAccountEmail = generateEmailTemplate( (user, token) => ({
 
 const resetPasswordEmail = generateEmailTemplate( (user, token) => ({
     to: user.email,
-    subject: 'Reset your password',
+    subject: "Reset your password",
     html: resetPasswordTemplate({
         name: user.firstName ? user.firstName : user.email,
         domain: config.server.domainAddress,
         domainName: config.server.domainName,
         link: genTokenLink(token)
-    })
+    }),
+    encoding: 'utf-8'
 }), EmailTokenGenerator.TYPE.RESET_PASSWORD);
 
 
@@ -55,7 +57,7 @@ function generateEmailTemplate(generateEmail, type) {
         // send email
         const result = await mailers.auth.sendMail(generateEmail(user, token.token));
 
-        Logger.info(result);
+        logger.info(result);
     }
 }
 

@@ -8,15 +8,14 @@ const db = Object.freeze({
     NAME: process.env.DB_NAME,
     USER: process.env.DB_USER,
     PWD: process.env.DB_PWD,
-    RETRY_ON_FAILURE: process.env.DB_CONNECT_RETRY.trim().toLowerCase() === 'true' ||
-            process.env.DB_CONNECT_RETRY.trim().toLowerCase() === 'yes' ? true : false
 });
 
 const server = Object.freeze({
     PORT: Number(process.env.PORT),
+    SSL: isTrue(process.env.SSL),
     env: process.env.NODE_ENV,
     domainName: process.env.DOMAIN_NAME || "User Auth App",
-    domainAddress: process.env.DOMAIN_ADDRESS|| "localhost:3000"
+    domainAddress: isTrue(process.env.SSL) ? `https://${process.env.DOMAIN_ADDRESS}` : `http://${process.env.DOMAIN_ADDRESS}`
 });
 
 if (isNaN(server.PORT))
@@ -77,6 +76,17 @@ Object.entries(mailer)
                     throw new Error(`mailer: ${mailerName}: '${key}' value is '${mailConfig[key]}'`);
             });
     });
+
+
+function isTrue(value) {
+    if (typeof value === 'boolean')
+        return value;
+    else if (typeof value === 'string') {
+        return value.trim().toLowerCase() === 'true' || value.trim().toLowerCase() === 'yes';
+    }
+    return false;
+}
+
 
 export default {
     jwt,

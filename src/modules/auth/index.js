@@ -5,7 +5,7 @@ import { signIn, signUp, signOut,validateToken, getAuth, sendResetPasswordEmail,
 import { accessToken, refreshToken } from './token';
 import { model as User } from '../users/model';
 import { defineAbilitiesFor } from './abilities';
-
+import cfg from '@config';
 
 function config(app) {
 
@@ -19,7 +19,7 @@ function config(app) {
             // if the access token is valid, take the user id and rules from it
             // to generate a acl list. Access rules are stored in the accessToken
             // Access tokens will have a short life span to mitigate token theft.
-            const token = req.universalCookies.get('accessToken');
+            const token = req.cookies.accessToken;
 
             // Verify token
             const { id, role} = await accessToken.verify(token);
@@ -35,9 +35,8 @@ function config(app) {
             // access token is invalid
             try {
                 // Check if the refresh token is valid
-                const tokenName = 'refreshToken';
 
-                const token = req.universalCookies.get(tokenName);
+                const token = req.cookies.refreshToken;
                 const { id } = await refreshToken.verify(token);
                 const user = await User.findById(id);
 
@@ -48,17 +47,14 @@ function config(app) {
                     const { token, expires } = await accessToken.sign(user);
                     res.cookie('accessToken', token, {
                         httpOnly: true,
-                        expires
+                        expires,
+                        secure: cfg.server.SSL
                     });
                     // attach user to the request object
                     req.user = user;
                 }
 
             } catch (e) {
-                // refresh token is invalid
-                // clear tokens from cookies
-                req.universalCookies.remove('refreshToken');
-                req.universalCookies.remove('accessToken');
                 return next();
             }
         }

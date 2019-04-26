@@ -8,7 +8,7 @@ module.exports = merge(common, {
     plugins: [
         new webpack.DefinePlugin({
             "process.env.NODE_ENV": JSON.stringify('production'),
-            "process.env.DB_CONNECT_RETRY": true,
+            "process.env.DB_CONNECT_RETRY": JSON.stringify(true),
             "process.env.PORT": JSON.stringify(3000)
         })
     ]
