@@ -17,11 +17,7 @@ function connect() {
     })
     // Handle DB initialization errors here
     .catch(e => {
-        logger.error("Unable to connect to database: ", e.message);
-
-        // re-throw only in development and if retry is not set to true
-        if (config.server.env === 'development' && config.db.RETRY_ON_FAILURE)
-            throw new Error(e);
+        logger.error("Unable to connect to database: ", e);
     });
 }
 
