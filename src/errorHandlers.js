@@ -50,13 +50,7 @@ function TokenValidationErrors (err, req, res, next) {
     if (err.name) {
         switch (err.name) {
             case 'TokenExpiredError':
-                next(new Unauthorized(err.message))
-            break;
-
             case 'JsonWebTokenError':
-                next(new Unauthorized(err.message))
-            break;
-
             case 'NotBeforeError':
                 next(new Unauthorized(err.message))
             break;

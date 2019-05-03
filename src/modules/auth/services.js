@@ -137,7 +137,6 @@ async function validateToken(req, res, next) {
             res.status(200).json({ id, type});
         }
     } catch (e) {
-        console.log(e);
         return next(e);
     }
 }
