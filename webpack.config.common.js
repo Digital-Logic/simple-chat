@@ -37,7 +37,7 @@ module.exports = {
             "process.env.BUILD_TARGET": JSON.stringify('server'),
             "process.env.JWT_ACCESS_EXP": JSON.stringify('5m'),
             "process.env.JWT_REFRESH_EXP": JSON.stringify('150d'),
-            "process.env.JWT_RESET_EXP": JSON.stringify('3h'),
+            "process.env.JWT_RESET_EXP": JSON.stringify('6h'),
             "process.env.BCRYPT_SALT": JSON.stringify(8), // Use a high value in production
         })
     ],

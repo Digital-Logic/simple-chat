@@ -12,13 +12,18 @@ function findAll(req, res, next) {
 }
 
 function findOne(req, res, next) {
-    model.findById(req.params.id)
-        .accessibleBy(req.ability, 'read')
-        .select(model.accessibleFieldsBy(req.ability, 'read'))
-        .then(result => {
-            res.json(result);
-        })
-        .catch(next);
+    if (req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+
+        model.findById(req.params.id)
+            .accessibleBy(req.ability, 'read')
+            .select(model.accessibleFieldsBy(req.ability, 'read'))
+            .then(result => {
+                res.json(result);
+            })
+            .catch(next);
+    } else {
+        next(new BadRequest('Invalid object id.'));
+    }
 }
 
 function updateOne(req, res, next) {

@@ -99,7 +99,12 @@ const sendEmailValidationCode = sendEmailValidationCodeGenerator(verifyAccountEm
 function sendEmailValidationCodeGenerator(action) {
     return async (req, res, next) => {
         try {
-            const user = await model.findOne({ email: req.body.email });
+            let user;
+            if ( req.body.email )
+                user = await model.findOne({ email: req.body.email });
+            else if (req.body.id)
+                user = await model.findById(req.body.id);
+
 
             if (user && !user.accountVerified) {
                 // generate token
@@ -123,15 +128,19 @@ async function validateToken(req, res, next) {
 
             const user = await model.findById(id);
             if (user && !user.accountVerified && !user.disabled) {
-                user.accountVerified = true;
+               // user.accountVerified = true;
 
-                await user.save({
-                    validateBeforeSave: true
-                });
+                // await user.save({
+                //     validateBeforeSave: true
+                // });
                 // Notify the user that there account is now active.
                 return res.status(200).send("Account Activated");
             }
+            /**
+             * TODO: The account cannot be activated, user account has been deleted, already verified or disabled.
+             */
             return res.status(204).send();
+
         } else if (type === emailToken.TYPE.RESET_PASSWORD) {
             // Inform the front-end that the token is valid
             res.status(200).json({ id, type});
@@ -145,7 +154,11 @@ const sendResetPasswordEmail = sendResetPasswordGenerator(resetPasswordEmail);
 function sendResetPasswordGenerator(action) {
     return async (req, res, next) => {
         try {
-            const user = await model.findOne({ email: req.body.email }).lean().exec();
+            let user;
+            if (req.body.email)
+                user = await model.findOne({ email: req.body.email }).lean().exec();
+            else if (req.body.id)
+                user = await model.findById(req.body.id).lean().exec();
 
             if (user && user.accountVerified && !user.disabled)
             {
@@ -183,6 +196,8 @@ async function resetUserPassword(req, res, next) {
         await user.save({
             validateBeforeSave: true
         });
+
+        // Send auth tokens to user if you want to...
 
         res.status(200).send();
 
