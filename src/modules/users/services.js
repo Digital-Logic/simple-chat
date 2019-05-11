@@ -36,15 +36,12 @@ function updateOne(req, res, next) {
 
             req.ability.throwUnlessCan('update', doc);
             const updatableFields = model.accessibleFieldsBy(req.ability, 'update');
-            // console.log(updatableFields);
-            // console.log(req.body);
             // filter data that the user does not have access to update
             Object.entries(req.body).forEach(([key, value]) => {
                 if (updatableFields.indexOf(key) !== -1){
                     doc[key] = value;
                 }
             });
-
             return doc.save({ validateBeforeSave: true });
         })
         .then(doc => {
