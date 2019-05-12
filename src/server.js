@@ -19,12 +19,12 @@ for(let [name, config] of Object.entries(Modules)) {
     config(app);
 }
 
-app.use(express.static('../front-end'));
+app.use(express.static('./public'));
 
 app.get('*', (req, res) => {
-    res.sendFile(path.resolve('../../front-end/index.html'));
-});
 
+    res.sendFile(path.resolve('./public/index.html'));
+});
 
 setupErrorHandlers(app);
 
