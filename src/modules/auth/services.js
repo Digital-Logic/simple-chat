@@ -128,11 +128,11 @@ async function validateToken(req, res, next) {
 
             const user = await model.findById(id);
             if (user && !user.accountVerified && !user.disabled) {
-               // user.accountVerified = true;
+                user.accountVerified = true;
 
-                // await user.save({
-                //     validateBeforeSave: true
-                // });
+                await user.save({
+                    validateBeforeSave: true
+                });
                 // Notify the user that there account is now active.
                 return res.status(200).send("Account Activated");
             }
