@@ -7,6 +7,10 @@ import { ROLES } from '../auth/abilities';
 import { Conflict } from 'http-errors';
 
 const modelName = "User";
+const AUTH_TYPES = Object.freeze({
+    PWD: 'PWD',
+    GOOGLE: 'GOOGLE'
+});
 
 const schema = {
     email: {
@@ -39,8 +43,10 @@ const schema = {
     pwd: {
         type: String,
         minlength: [7, "Password must be at lest 7 characters."],
-        required: [true, "Password is required."],
         select: false
+    },
+    authTypes: {
+        type: []
     },
     role: {
         type: String,
@@ -92,5 +98,6 @@ const model = retrieveOrCreate(modelName, userSchema);
 export {
     model,
     modelName,
-    schema
+    schema,
+    AUTH_TYPES
 };

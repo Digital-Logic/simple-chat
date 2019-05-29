@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { signIn, signUp, signOut,validateToken, getAuth, sendResetPasswordEmail,
-        changePassword, sendEmailValidationCode, resetUserPassword } from './services';
+        changePassword, sendEmailValidationCode, resetUserPassword, getOAuthURL,
+        googleAuth } from './services';
 
 import { accessToken, refreshToken } from './token';
 import { model as User } from '../users/model';
@@ -66,10 +67,17 @@ function config(app) {
         return next();
     });
 
+    const OAUTHRouter = new Router();
+
+    OAUTHRouter.route('/')
+        .get(getOAuthURL);
+
+    OAUTHRouter.route('/google')
+        .post(googleAuth);
+
     router.route('/sign-in')
         .get(getAuth)
         .post(signIn);
-
 
     router.route('/sign-up')
         .post(signUp);
@@ -93,6 +101,7 @@ function config(app) {
         .post(changePassword);
 
     app.use('/api/auth', router);
+    router.use('/oauth2', OAUTHRouter);
 }
 
 export default config;

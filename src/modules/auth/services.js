@@ -1,4 +1,4 @@
-import { model } from '../users/model';
+import { model, AUTH_TYPES } from '../users/model';
 import Logger from '@src/Logger';
 import { Unauthorized, Forbidden, BadRequest } from 'http-errors';
 import { accessToken, refreshToken } from './token';
@@ -6,16 +6,115 @@ import { verifyAccountEmail, resetPasswordEmail, emailToken } from './emailGener
 import { defineAbilitiesFor } from './abilities';
 import jwt from 'jsonwebtoken';
 import config from '@config';
+import { getConnection, getGoogleAccount } from './google-auth';
 
 
 async function getAuth(req, res, next) {
-
     return res.status(200).json({
         id: req.user && req.user.id,
         rules: req.ability && req.ability.rules || defineAbilitiesFor(req.user)
     });
 }
 
+async function getOAuthURL(req, res, next) {
+    try {
+        const url = await getConnection();
+        res.status(200).json({
+            url
+        });
+
+    } catch (e) {
+        // Cannot generate a url, send error
+        console.log(e);
+    }
+}
+
+async function googleAuth(req, res, next) {
+    const code = req.body.code;
+    try {
+        const userAccount = await getGoogleAccount(code);
+
+        // does the account exist?
+        let user = await model.findOne({ email: userAccount.email });
+
+        if (user) {
+            // The user account has not been verified
+            if (!user.accountVerified) {
+                user.accountVerified = userAccount.email_verified;
+                await user.save();
+            }
+
+            if (user.authTypes.indexOf(AUTH_TYPES.GOOGLE) === -1) {
+                user.authTypes.push(AUTH_TYPES.GOOGLE);
+                await user.save();
+            }
+
+        } else {
+            // create User account
+            user = await model.create({
+                email: userAccount.email,
+                firstName: userAccount.given_name,
+                lastName: userAccount.family_name,
+                accountVerified: userAccount.email_verified,
+                authTypes: [AUTH_TYPES.GOOGLE]
+            });
+        }
+
+        if (user.accountVerified && !user.disabled)
+        {
+            // Attach the user to the req object.
+            req.user = user;
+            req.ability = defineAbilitiesFor(user); // generate user abilities
+            // Create tokens and send them to the end-user
+            return sendTokens(req, res, next);
+
+        } else {
+            if (user.disabled) {
+                Logger.info('User trying to login with disabled account: ', user.email);
+                next(new Forbidden('User account has been disabled.'));
+            } else {
+                next(new Forbidden('User account must be verified before logging in.'));
+            }
+        }
+
+    } catch (e) {
+        Logger.error('Google OAuth error: ', e);
+        next(e);
+    }
+}
+
+async function sendTokens(req, res, next) {
+    try {
+        const user = req.user;
+        const access = await accessToken.sign(user);
+        const refresh = await refreshToken.sign(user);
+
+        // Create cookies
+        res.cookie('accessToken', access.token , {
+            httpOnly: true,
+            expires: access.expires,
+            secure: config.server.SSL
+        });
+
+        res.cookie('refreshToken', refresh.token, {
+            httpOnly: true,
+            expires: refresh.expires,
+            secure: config.server.SSL
+        });
+
+        Logger.info(`User signed in: ${user.email}`);
+
+        res.status(200).json({
+            id: user.id,
+            rules: defineAbilitiesFor(user).rules
+        });
+
+    } catch (e) {
+        // Unable to generate token, or an unknown error occurred.
+        Logger.error('OAuth token generation error: ', e); // Move into logger
+        next(e);
+    }
+}
 
 async function signIn(req, res, next) {
 
@@ -23,34 +122,11 @@ async function signIn(req, res, next) {
 
     if (user && await user.checkPassword(req.body.pwd)) {
         if (user.accountVerified) {
-            try {
-                const access = await accessToken.sign(user);
-                const refresh = await refreshToken.sign(user);
+            req.user = user;
+            req.ability = defineAbilitiesFor(user);
 
-                // Create cookies
-                res.cookie('accessToken', access.token , {
-                    httpOnly: true,
-                    expires: access.expires,
-                    secure: config.server.SSL
-                });
+            sendTokens(req, res, next);
 
-                res.cookie('refreshToken', refresh.token, {
-                    httpOnly: true,
-                    expires: refresh.expires,
-                    secure: config.server.SSL
-                });
-
-                Logger.info(`User signed in: ${user.email}`);
-
-                res.status(200).json({
-                    id: user.id,
-                    rules: defineAbilitiesFor(user).rules
-                });
-
-            } catch (e) {
-                // Unable to generate token, or an unknown error occurred.
-                next(e);
-            }
         } else {
             next(new Forbidden("User account must be verified before login."));
         }
@@ -74,7 +150,9 @@ function signUpRouteGenerator(action) {
                     .reduce( (filtered, key) => {
                         filtered[key] = req.body[key] || undefined;
                         return filtered;
-                    }, {});
+                    }, {
+                        authTypes: [AUTH_TYPES.PWD]
+                    });
 
             const user = await model.create(filteredInput);
 
@@ -252,7 +330,7 @@ function signOut(req, res, next) {
 
         res.status(204).send();
     } catch (e) {
-        next(e);
+        next('SignOut route: ', e);
     }
 }
 
@@ -268,5 +346,7 @@ export {
     sendResetPasswordEmail,
     sendResetPasswordGenerator,
     validateToken,
-    resetUserPassword
+    resetUserPassword,
+    getOAuthURL,
+    googleAuth
 };

@@ -18,6 +18,7 @@ function connect() {
     // Handle DB initialization errors here
     .catch(e => {
         logger.error("Unable to connect to database: ", e);
+        //console.log(e);
     });
 }
 

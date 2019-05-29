@@ -53,6 +53,10 @@ const bcryptSalt = Number(process.env.BCRYPT_SALT);
 if(isNaN(bcryptSalt))
     throw new Error("ConfigError: BCRYPT_SALT is not a valid number.");
 
+const OAUTH2 = {
+    clientID: process.env.OAUTH2_CLIENT_ID,
+    secret: process.env.OAUTH2_CLIENT_SECRET
+};
 
 const mailer = {
     auth: {
@@ -93,5 +97,6 @@ export default {
     db,
     server,
     bcryptSalt,
-    mailer
+    mailer,
+    OAUTH2
 };

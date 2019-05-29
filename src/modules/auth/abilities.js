@@ -17,7 +17,7 @@ function defineAbilitiesFor(user) {
             // Global user abilities
             can('delete', User, { _id: user.id });
             can('read', User, ['email', 'firstName', 'lastName', '_id']);
-            can('read', User, ['email', 'firstName', 'lastName', 'role', 'createdAt', 'updatedAt', 'disabled', 'accountVerified', '_id'], { _id: user.id});
+            can('read', User, ['email', 'firstName', 'lastName', 'role', 'createdAt', 'authTypes', 'updatedAt', 'disabled', 'accountVerified', '_id'], { _id: user.id});
             can('update', User, ['email', 'firstName', 'lastName', 'password'], { _id: user.id });
 
             switch(user.role) {
