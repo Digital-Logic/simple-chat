@@ -13,14 +13,14 @@ import { AUTH_TYPES } from '../users/model';
 function createCallbackURL() {
     return `https://www.facebook.com/v3.3/dialog/oauth?` +
         `client_id=${config.OAUTH2.facebook.clientID}` +
-        `&redirect_uri=http://localhost:3000/auth/facebook`
+        `&redirect_uri=${config.server.domainAddress}/auth/facebook`
 }
 
 function getFacebookAccount(code) {
     return axios.get('https://graph.facebook.com/v3.3/oauth/access_token', {
             params: {
                 client_id: config.OAUTH2.facebook.clientID,
-                redirect_uri: 'http://localhost:3000/auth/facebook',
+                redirect_uri: `${config.server.domainAddress}/auth/facebook`,
                 client_secret: config.OAUTH2.facebook.secret,
                 code
             },

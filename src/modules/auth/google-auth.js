@@ -12,7 +12,7 @@ const scope = [
 const auth = new google.auth.OAuth2(
     config.OAUTH2.google.clientID,
     config.OAUTH2.google.secret,
-    `http://localhost:3000/auth/google`
+    `${config.server.domainAddress}/auth/google`
 );
 
 function getConnection() {
