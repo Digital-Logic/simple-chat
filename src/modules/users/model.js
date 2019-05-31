@@ -5,11 +5,13 @@ import config from '@config';
 import { retrieveOrCreate } from '@utils';
 import { ROLES } from '../auth/abilities';
 import { Conflict } from 'http-errors';
+import logger from '@src/Logger';
 
 const modelName = "User";
 const AUTH_TYPES = Object.freeze({
     PWD: 'PWD',
-    GOOGLE: 'GOOGLE'
+    GOOGLE: 'GOOGLE',
+    FACEBOOK: 'FACEBOOK'
 });
 
 const schema = {
@@ -89,7 +91,10 @@ userSchema.post('save', function(err, doc, next) {
 
 userSchema.methods.checkPassword = function(pwd) {
     return bcrypt.compare(pwd, this.pwd)
-        .catch(e => false);
+        .catch(e => {
+            //logger.error('checkPassword error: ', e);
+            return false;
+        });
 }
 
 // If this model already exist, retrieve it, else create it.

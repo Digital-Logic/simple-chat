@@ -9,14 +9,14 @@ import config from './config';
  */
 
 function bodyParserHandler (err, req, res, next) {
-    if (err.type === 'entity.parse.failed' ||
+    if ( err.type && (err.type === 'entity.parse.failed' ||
     err.type === 'encoding.unsupported' ||
     err.type === 'request.aborted' ||
     err.type === 'entity.too.large' ||
     err.type === 'request.size.invalid' ||
     err.type === 'stream.encoding.set' ||
     err.type === 'parameters.too.many' ||
-    err.type === 'charset.unsupported' )
+    err.type === 'charset.unsupported' ))
     {
         next(new BadRequest(err.message));
     } else {
@@ -72,6 +72,18 @@ function aclErrors(err, req, res, next) {
 }
 
 /**
+ * OAuth errors
+ */
+
+ function oAuthErrors(err, req, res, next) {
+
+    if (typeof err.type === 'string' && err.type.toLowerCase() === 'oauthexception') {
+        next(new Forbidden(err.message));
+    }
+    next(err);
+ }
+
+/**
  * Generic error handler
  */
  function genericErrorHandler(err, req, res, next) {
@@ -111,6 +123,7 @@ function setupErrorHandlers (app) {
     app.use(modelValidation);
     app.use(TokenValidationErrors);
     app.use(aclErrors);
+    app.use(oAuthErrors);
 
     // the genericErrorHandler must be the last errorHandler called
     app.use(genericErrorHandler);

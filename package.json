@@ -39,6 +39,7 @@
     "@babel/runtime": "^7.4.2",
     "@casl/ability": "^3.0.2",
     "@casl/mongoose": "^2.3.1",
+    "axios": "^0.18.0",
     "bcrypt": "^3.0.5",
     "body-parser": "^1.18.3",
     "cookie-parser": "^1.4.4",

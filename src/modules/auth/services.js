@@ -7,7 +7,7 @@ import { defineAbilitiesFor } from './abilities';
 import jwt from 'jsonwebtoken';
 import config from '@config';
 import { getConnection, getGoogleAccount } from './google-auth';
-
+import { createCallbackURL, getFacebookAccount } from './facebook-auth';
 
 async function getAuth(req, res, next) {
     return res.status(200).json({
@@ -16,23 +16,30 @@ async function getAuth(req, res, next) {
     });
 }
 
-async function getOAuthURL(req, res, next) {
-    try {
-        const url = await getConnection();
-        res.status(200).json({
-            url
-        });
+function getOAuthURL(req, res, next) {
 
-    } catch (e) {
-        // Cannot generate a url, send error
-        console.log(e);
-    }
+    res.status(200).json({
+        googleUrl: getConnection(),
+        facebookUrl: createCallbackURL()
+    });
 }
 
-async function googleAuth(req, res, next) {
+async function processOAuth(req, res, next) {
     const code = req.body.code;
+    const path = req.body.path;
+
     try {
-        const userAccount = await getGoogleAccount(code);
+        let userAccount;
+
+        if (/google/i.test(path)) {
+            // google api call
+            userAccount = await getGoogleAccount(code);
+
+        } else if (/facebook/i.test(path)) {
+            // facebook api call
+            userAccount = await getFacebookAccount(code);
+        }
+        // Add other OAuth providers
 
         // does the account exist?
         let user = await model.findOne({ email: userAccount.email });
@@ -44,19 +51,20 @@ async function googleAuth(req, res, next) {
                 await user.save();
             }
 
-            if (user.authTypes.indexOf(AUTH_TYPES.GOOGLE) === -1) {
-                user.authTypes.push(AUTH_TYPES.GOOGLE);
+            if (user.authTypes.indexOf(userAccount.authType) === -1) {
+                user.authTypes.push(userAccount.authType);
                 await user.save();
             }
+            // Compare differences in account information here
 
         } else {
             // create User account
             user = await model.create({
                 email: userAccount.email,
-                firstName: userAccount.given_name,
-                lastName: userAccount.family_name,
+                firstName: userAccount.firstName,
+                lastName: userAccount.lastName,
                 accountVerified: userAccount.email_verified,
-                authTypes: [AUTH_TYPES.GOOGLE]
+                authTypes: [userAccount.authType]
             });
         }
 
@@ -78,8 +86,8 @@ async function googleAuth(req, res, next) {
         }
 
     } catch (e) {
-        Logger.error('Google OAuth error: ', e);
-        next(e);
+        Logger.error('OAuth Error: ', e.response.data);
+        next(e.response.data.error);
     }
 }
 
@@ -126,7 +134,6 @@ async function signIn(req, res, next) {
             req.ability = defineAbilitiesFor(user);
 
             sendTokens(req, res, next);
-
         } else {
             next(new Forbidden("User account must be verified before login."));
         }
@@ -272,7 +279,8 @@ async function resetUserPassword(req, res, next) {
         user.pwd = pwd;
 
         await user.save({
-            validateBeforeSave: true
+            validateBeforeSave: true,
+            authTypes: user.authTypes.indexOf(AUTH_TYPES.PWD) === -1 ? user.authTypes.push(AUTH_TYPES.PWD) : user.authTypes
         });
 
         // Send auth tokens to user if you want to...
@@ -330,7 +338,8 @@ function signOut(req, res, next) {
 
         res.status(204).send();
     } catch (e) {
-        next('SignOut route: ', e);
+        Logger.error('SignOut error: ', e);
+        next(e);
     }
 }
 
@@ -348,5 +357,5 @@ export {
     validateToken,
     resetUserPassword,
     getOAuthURL,
-    googleAuth
+    processOAuth
 };

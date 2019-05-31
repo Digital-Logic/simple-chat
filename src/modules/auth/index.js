@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { signIn, signUp, signOut,validateToken, getAuth, sendResetPasswordEmail,
         changePassword, sendEmailValidationCode, resetUserPassword, getOAuthURL,
-        googleAuth } from './services';
+        processOAuth } from './services';
 
 import { accessToken, refreshToken } from './token';
 import { model as User } from '../users/model';
@@ -70,10 +70,8 @@ function config(app) {
     const OAUTHRouter = new Router();
 
     OAUTHRouter.route('/')
-        .get(getOAuthURL);
-
-    OAUTHRouter.route('/google')
-        .post(googleAuth);
+        .get(getOAuthURL)
+        .post(processOAuth);
 
     router.route('/sign-in')
         .get(getAuth)

@@ -54,8 +54,14 @@ if(isNaN(bcryptSalt))
     throw new Error("ConfigError: BCRYPT_SALT is not a valid number.");
 
 const OAUTH2 = {
-    clientID: process.env.OAUTH2_CLIENT_ID,
-    secret: process.env.OAUTH2_CLIENT_SECRET
+    google: {
+        clientID: process.env.GOOGLE_CLIENT_ID,
+        secret: process.env.GOOGLE_CLIENT_SECRET
+    },
+    facebook: {
+        clientID: process.env.FACEBOOK_CLIENT_ID,
+        secret: process.env.FACEBOOK_CLIENT_SECRET
+    }
 };
 
 const mailer = {
