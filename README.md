@@ -2,6 +2,7 @@
 
 ## What it provides
 * User authorization, authentication, and access control.
+* Social media login support and account integration
 * JWT token are stored in cookies.
 * Bcrypt encryption on user passwords
 * Email validate, password reset using jwt tokens.
@@ -15,7 +16,6 @@
 ### Task List
 - [ ] Jwt secret key rotation.
 - [ ] API endpoint throttling.
-- [ ] Google, facebook login support.
 
 ### Available commands
 ```javascript
