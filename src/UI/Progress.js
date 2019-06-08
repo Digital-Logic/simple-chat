@@ -5,19 +5,24 @@ import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 
 const styles = theme => ({
-    progress: {
-        margin: '15px'
-    },
     root: {
-        minHeight: '85px'
+        overflow: 'hidden'
+    },
+    progress: {
+        margin: '10px'
     }
 });
 
-function Progress () {
+function Progress ({ classes }) {
     return (
-        <Grid container justify="center" alignItems="center">
+        <Grid
+            container
+            className={classes.root}
+            justify="center"
+            alignItems="center">
             <CircularProgress
-                size={60}
+                className={classes.progress}
+                size={70}
                 thickness={2}
                 />
         </Grid>
