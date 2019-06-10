@@ -1,4 +1,4 @@
-import React, { createContext, useReducer, Fragment, useCallback } from 'react';
+import React, { createContext, useReducer, Fragment, useMemo } from 'react';
 import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
@@ -15,78 +15,114 @@ const ACTIONS = Object.freeze({
 });
 
 
-const MODEL_STATES = Object.freeze({
+const MODEL_STATES = {
     CLOSED: 'CLOSED',
     LOADING: 'LOADING',
-});
+};
 
-function withModelManager(WrappedComponent) {
 
-    const initialState = {
-        state: MODEL_STATES.CLOSED,
-        displayState: MODEL_STATES.LOADING,
-        closeHandlers: {
-            default: ({state, setState}) => {
-                if (state !== MODEL_STATES.LOADING)
-                    setState(MODEL_STATES.CLOSED);
-            }
-        },
-        models: {
-            [MODEL_STATES.CLOSED]: null,
-            // Generic loading model
-            [MODEL_STATES.LOADING]: ({state, onClose}) => (
-                <Fragment>
-                    <DialogTitle align="center">Loading</DialogTitle>
-                    <DialogContent>
-                        <Progress />
-                    </DialogContent>
-                    <DialogActions>
-                        <Grid container justify="flex-end">
-                            <Button
-                                onClick={onClose}
-                                disabled={state === 'LOADING'}>Close</Button>
-                        </Grid>
-                    </DialogActions>
-                </Fragment>
-            )
-        },
-    };
+function withModelManager(_models=[]) {
 
-    function WithModelManager(props) {
+    // const initialModelState = _models.reduce((collector, { model, actions, key }) => {
 
-        const [{ state, displayState, models, closeHandlers }, dispatch] = useReducer(reducer, initialState);
+    // },{
+    //     [MODEL_STATES.CLOSED]: null,
+    // });
 
-        const contextValue = {
-            state,
-            setState: state => dispatch(setState(state)),
-            createModel: (props) => dispatch(createModel(props))
+    function _withModelManager(WrappedComponent) {
+
+        const initialState = {
+            state: MODEL_STATES.CLOSED,
+            displayState: MODEL_STATES.LOADING,
+            actions: {
+                default:{
+                    onClose:({state, setState}) => {
+                        if (state !== MODEL_STATES.LOADING) {
+                            setState(MODEL_STATES.CLOSED);
+                        }
+                    }
+                },
+                [MODEL_STATES.LOADING]: {
+                    onClose:({state, setState}) => {
+                        if (state !== MODEL_STATES.LOADING)
+                            setState(MODEL_STATES.CLOSED);
+                    }
+                }
+
+            },
+            models: {
+                [MODEL_STATES.CLOSED]: null,
+                // Generic loading model
+
+                [MODEL_STATES.LOADING]: ({state, onClose}) => (
+                    <Fragment>
+                        <DialogTitle align="center">Loading</DialogTitle>
+                        <DialogContent>
+                            <Progress />
+                        </DialogContent>
+                        <DialogActions>
+                            <Grid container justify="flex-end">
+                                <Button
+                                    onClick={onClose}
+                                    disabled={state === 'LOADING'}>Close</Button>
+                            </Grid>
+                        </DialogActions>
+                    </Fragment>
+                ),
+
+            },
         };
 
-        const onClose = useCallback(() => {
-            typeof closeHandlers[displayState] === 'function' ?
-                closeHandlers[displayState]({ state: displayState, setState: state => dispatch(setState(state)) }) :
-                closeHandlers.default({ state: displayState, setState: state => dispatch(setState(state))});
-        },[displayState, closeHandlers]);
+        function WithModelManager(props) {
 
-        return (
-            <ModelContext.Provider value={contextValue}>
-                <WrappedComponent {...props} />
+            const [{ state, displayState, models, actions }, dispatch] = useReducer(reducer, initialState);
 
-                <Dialog
-                    open={state !== MODEL_STATES.CLOSED}
-                    onClose={onClose}>
-                {
-                    models[displayState]({ state: displayState, onClose })
-                }
-                </Dialog>
-            </ModelContext.Provider>
-        );
+            const contextValue = {
+                state,
+                setState: state => dispatch(setState(state)),
+                createModel: (props) => dispatch(createModel(props)),
+                STATES: MODEL_STATES
+            };
+
+            // Each function defined in this models actions, will be provided with state and setState properties
+            // by wrapping these properties with a closure and memorizing them
+            const modelActions = useMemo(() => Object.entries(actions[displayState]).reduce((acc, [key, fun]) => {
+                acc[key] = (data) => fun({
+                    state: displayState,
+                    setState: state => dispatch(setState(state)),
+                    ...data
+                });
+
+                return acc;
+            },{}), [displayState, actions]);
+
+            return (
+                <ModelContext.Provider value={contextValue}>
+                    <WrappedComponent {...props} />
+
+                    <Dialog
+                        open={state !== MODEL_STATES.CLOSED}
+                        onClose={ modelActions.onClose }>
+                    {
+                        models[displayState]({
+                            state: displayState,
+                            actions: modelActions,
+                            onClose: modelActions.onClose
+                        })
+                    }
+                    </Dialog>
+                </ModelContext.Provider>
+            );
+        }
+
+        return WithModelManager;
     }
-
-    return WithModelManager;
+    return _withModelManager;
 }
 
-function reducer(state, { type, newState, key, model, onClose }) {
+
+
+function reducer(state, { type, newState, key, model, actions }) {
     switch(type) {
         case ACTIONS.SET_STATE:
             // Check if the requested state exist
@@ -100,15 +136,20 @@ function reducer(state, { type, newState, key, model, onClose }) {
             };
 
         case ACTIONS.CREATE_MODEL:
+            MODEL_STATES[key] = key;
             return {
                 ...state,
                 models: {
                     ...state.models,
                     [key]: model
                 },
-                closeHandlers: {
-                    ...state.closeHandlers,
-                    [key]: onClose
+                actions: {
+                    ...state.actions,
+                    [key]: {
+                        ...actions,
+                        onClose: typeof actions.onClose === 'function' ? actions.onClose :
+                            state.actions.default.onClose
+                    }
                 }
             };
         default:
@@ -117,12 +158,12 @@ function reducer(state, { type, newState, key, model, onClose }) {
 }
 
 
-function createModel({ key, model, onClose }) {
+function createModel({ key, model, actions={} }) {
     return {
         type: ACTIONS.CREATE_MODEL,
         key,
         model,
-        onClose
+        actions
     };
 }
 
