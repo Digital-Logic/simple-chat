@@ -1,0 +1,1 @@
+export { reducer as themeReducer, THEME_TYPE } from './theme.reducer.js';
