@@ -1,61 +1,78 @@
 import isEmailValidator from 'validator/lib/isEmail';
 
-function required(message = 'This field is required') {
-    return buildValidator( function _required(curValue) {
-        if (curValue == null || (typeof curValue === 'string' && curValue.trim() === '') )
-            return message;
-        else return '';
-    }, true);
-}
-
-function isEqualTo(value1, message = 'Passwords do not match') {
-    return buildValidator( function _isEqualTo(value2) {
+const isEqualTo = createValidator((value1, message = 'Passwords do not match') => {
+    return memorize( function _isEqualTo(value2) {
         if (value1 !== value2) {
             return message;
         } else return '';
     });
-}
+});
 
-function isNumber(message = 'Invalid Number') {
-    return buildValidator(function _isNumber(value) {
+
+const isNumber = createValidator((message = 'Invalid Number') => {
+    return memorize(function _isNumber(value) {
         if (Number.isNaN( Number(value) )) {
             return message;
         } else return '';
-    }, true);
-}
+    });
+});
 
-function minLength (minValue, message = `Minimum of ${minValue} characters`) {
-    return buildValidator(function _minLength(value) {
+const minLength = createValidator((minValue, message = `Minimum of ${minValue} characters`) => {
+    return memorize(function _minLength(value) {
         if (value == null) return '';
         if (String(value).length < minValue) {
             return message;
         } else return '';
 
-    }, true);
-}
+    });
+});
 
-function maxLength (maxValue, message = `${maxValue} characters max`) {
-    return buildValidator(function _maxLength(value) {
+const maxLength = createValidator((maxValue, message = `${maxValue} characters max`) => {
+    return memorize(function _maxLength(value) {
         if (value == null) return '';
         if (String(value).length > maxValue) {
             return message;
         } else return '';
-    }, true);
-}
+    });
+});
 
-function isEmail(message = `Please enter a valid eMail address.`) {
-    return buildValidator(function _isEmail(email) {
+const isEmail = createValidator((message = `Please enter a valid eMail address.`) => {
+    return memorize(function _isEmail(email) {
         if (isEmailValidator(email))
             return '';
         else return message;
-    }, true);
+    });
+});
+
+
+const required = createValidator((message = 'This field is required') => {
+    return memorize(function _required(curValue) {
+        if (curValue == null || (typeof curValue === 'string' && curValue.trim() === ''))
+                return message;
+            else return '';
+    });
+});
+
+
+/**
+ * Provides validator function caching to reduce re-rendering
+ * @param {function} fn
+ */
+function createValidator(fn) {
+    return memorize(fn);
 }
 
-function buildValidator(validatorFn, isPure = false) {
-    validatorFn.pure = isPure;
-
-    return validatorFn;
+function memorize(fn) {
+    const cache = new Map();
+    return function _memorizer(...args) {
+        const key = JSON.stringify(args);
+        if (!cache.has(key)) {
+            cache.set(key, fn(...args));
+        }
+        return cache.get(key);
+    }
 }
+
 
 // todo - isInteger, lessThan, greaterThan
 
@@ -66,5 +83,6 @@ export {
     minLength,
     maxLength,
     isEmail,
-    buildValidator
+    createValidator,
+    memorize
 };

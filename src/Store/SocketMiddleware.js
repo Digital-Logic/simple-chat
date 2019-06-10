@@ -4,6 +4,7 @@ const ACTIONS = Object.freeze({
     SUBSCRIBE: 'SOCKET_IO_SUBSCRIBE',
     UNSUBSCRIBE: 'SOCKET_IO_UNSUBSCRIBE',
     EMIT: 'SOCKET_IO_EMIT',
+    EMIT_EVENT: 'SOCKET_IO_EMIT_EVENT',
     EVENT_RECEIVED: 'SOCKET_IO_EVENT_RECEIVED'
 });
 
@@ -19,30 +20,31 @@ function socketMiddleware() {
 
         switch(type) {
             case ACTIONS.SUBSCRIBE:
-                dispatch({ type: ACTIONS.SUBSCRIBE_SUCCESSFUL,
+                dispatch({ type: 'SOCKET_IO_SUBSCRIBE_EVENT',
                     event,
                     handle: typeof handle === 'function' ? `function: ${handle.name}` : handle  });
-                // All events captured by socket.io will be dispatched through redux as of
+                // All events captured by socket.io will be dispatched through redux as
                 // type: SOCKET_IO_EVENT_RECEIVED
-                return socket.on(event, typeof handle === 'function' ? handle : defaultHandle);
+                return socket.on(event, typeof handle === 'function' ? handle : defaultHandle(event));
 
             case ACTIONS.UNSUBSCRIBE:
                 dispatch({ type: 'SOCKET_IO_UNSUBSCRIBE_EVENT',
                     event,
                     handle: typeof handle === 'function' ? `function: ${handle.name}` : handle });
                 // the handle must resolve to the same function that was used to register the event.
-                return socket.removeListener(event, typeof handle === 'function' ? handle : defaultHandle);
+                //return socket.removeListener(event, typeof handle === 'function' ? handle(event) : defaultHandle(event));
+                break;
 
             case ACTIONS.EMIT:
-                dispatch({ type: 'SOCKET_IO_EMIT_EVENT', event, data});
+                dispatch({ type: ACTIONS.EMIT_EVENT, event, data});
                 return socket.emit(event, data);
 
             default:
                 return next(action);
         }
 
-        function defaultHandle(data) {
-            dispatch({ type: 'SOCKET_IO_SUBSCRIBE_EVENT', event, data });
+        function defaultHandle(event) {
+            return data => dispatch({ type: ACTIONS.EVENT_RECEIVED, event, data });
         }
     };
 }

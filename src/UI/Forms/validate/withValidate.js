@@ -35,17 +35,17 @@ function withValidate(WrappedComponent) {
                     return true;
             }
 
-            // Props and state have not changed, are the validation methods pure functions, or do they
-            // depend on external state.
-
+            // Props and state have not changed, have the validation methods changed, or
+            // has any arguments to these methods changed.
             if (Array.isArray(nextProps.validate)) {
-                return nextProps.validate.reduce( (notPure, v) => {
-                    if (!v.pure)
+                return nextProps.validate.reduce( (isPure, validator, index) => {
+                    if ( validator !== this.props.validate[index])
                         return true;
-                    return notPure;
+                    return isPure;
                 }, false);
+
             } else if (nextProps.validate) {
-                return !nextProps.validate.pure;
+                return nextProps.validate !== this.props.validate;
             }
 
             return false;
@@ -55,13 +55,16 @@ function withValidate(WrappedComponent) {
             // no validators exist, exit
             if (this.props.validate == null) return;
 
-            // Normalize validate to an Array of validator functions.
             const validators =
-                Array.isArray(this.props.validate) ? this.props.validate : [this.props.validate]
-                .filter( validator => typeof validator === 'function');
+                // Normalize validate to an Array of validator functions.
+                (Array.isArray(this.props.validate) ? this.props.validate : [this.props.validate])
+                    // filter out any validators that are not functions.
+                    .filter( validator => typeof validator === 'function');
 
             const { value } = this.props;
 
+
+            // Iterate through each validator, and return the first error message
             const errorMessage = validators.reduce( ( message, validate) => {
                 if (message)
                     return message;
@@ -70,7 +73,6 @@ function withValidate(WrappedComponent) {
 
             // Update the state, if the errorMessage has changed
             if (errorMessage !== this.state.errorMessage ) {
-
                 this.setState({
                     errorMessage
                 });

@@ -1,57 +1,100 @@
-import React, { useReducer, useCallback, useRef, required, minLength } from 'react';
-import { Form, Input} from '../UI/Forms';
+import React, { PureComponent } from 'react';
+import { Form, ProgressInput, required, minLength } from '../UI/Forms';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
+import { connect } from 'react-redux';
+import { debounce } from '../util';
+import { authActions } from '../Store';
+import Progress from '@material-ui/core/CircularProgress';
+import CheckIcon from '@material-ui/icons/Check';
+import { ModelContext } from '../Models/withModelManager';
 
-const ELEMENT = Object.freeze({
-    NAME: 'name'
-});
+class NewUser extends PureComponent {
 
-const initialState = {
-    name: ''
-};
-
-function NewUser() {
-
-    const [{ name }, dispatch] = useReducer(reducer, initialState);
-    const formRef = useRef();
-
-    const onChange = useCallback(event => {
-        const { name, value } = event.target;
-        dispatch({
-            type: name,
-            value
-        });
-    });
-
-    return (
-        <Form ref={formRef} onSubmit={onSubmit}>
-            <Input
-                label="Create Your Handle"
-                name={ELEMENT.NAME}
-                value={name}
-                onChange={onChange}/>
-            <Grid container justify="flex-end">
-                <Button
-                    style={{ margin: '0 -12px'}}
-                    variant="outlined"
-                    type="submit"
-                    >Submit</Button>
-            </Grid>
-
-        </Form>
-    );
-}
-
-function onSubmit() {
-    console.log('Submitting data!');
-}
-
-function reducer(state, { type, value }) {
-    return {
-        ...state,
-        [type]: value
+    state = {
+        name: ''
     };
+
+    checkIsAvailable = debounce(() => {
+        const { name } = this.state;
+
+        this.props.checkUserAvailable(name);
+    }, 500);
+
+    onChange = this.onChange.bind(this);
+    onChange(event) {
+        const { name, value } = event.target;
+        const { available } = this.props;
+
+
+        this.setState({
+            [name]: value
+        });
+
+        if (value !== '')
+            this.checkIsAvailable();
+    }
+
+    CheckStatus = this.CheckStatus.bind(this)
+    CheckStatus() {
+        const { available } = this.props;
+        const { name } = this.state;
+
+        if (name === '' )
+            return null;
+
+        if (available[name] && available[name].isValidating) {
+            return <Progress thickness={5} size={20} />;
+        } else if (available[name] && available[name].available) {
+            return  <CheckIcon style={{ color: '#00d000' }}/>;
+        } else {
+            return null;
+        }
+    }
+
+    render() {
+        const { name } = this.state;
+        const { available } = this.props;
+
+        return (
+            <Form onSubmit={this._onSubmit}>
+                <ProgressInput
+                    label="Create Your Handle"
+                    available={available[name]}
+                    asyncAction={this.CheckStatus}
+                    name={'name'}
+                    value={name}
+                    onChange={this.onChange}/>
+
+                <Grid container justify="flex-end">
+                    <Button
+                        style={{ margin: '0 -12px'}}
+                        variant="outlined"
+                        type="submit"
+                        disabled={!(available[name] && available[name].available)}
+                        >Submit</Button>
+                </Grid>
+            </Form>
+        );
+    }
+
+    _onSubmit = this._onSubmit.bind(this);
+    _onSubmit() {
+        this.props.createUser({ user: this.state.name, model: this.context });
+    }
+
+    static mapState(state) {
+        return {
+            available: state.auth.availableHandles,
+        };
+    }
+    static mapDispatch(dispatch){
+        return {
+            checkUserAvailable: user => dispatch(authActions.checkUserAvailable(user)),
+            createUser: props => dispatch(authActions.createUser(props))
+        };
+    }
+    static contextType = ModelContext;
 }
 
-export default NewUser;
+export default connect(NewUser.mapState, NewUser.mapDispatch)(NewUser);

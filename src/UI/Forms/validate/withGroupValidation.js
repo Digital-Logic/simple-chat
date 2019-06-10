@@ -88,12 +88,12 @@ function withGroupValidation (WrappedComponent) {
         }
 
         render() {
-            const { isValid, children, onValidate, showErrors, validationDelay, searchDepth, onSubmit, ...props } = this.props;
+            const { isValid, children, onValidate, showErrors, validationDelay, onSubmit, searchDepth, ...props } = this.props;
 
             return (
                 <WrappedComponent
+                    onSubmit={ this.onSubmit }
                     children={ this.mapChildren(children) }
-                    onSubmit={this.onSubmit}
                     {...props }
                 />
             );

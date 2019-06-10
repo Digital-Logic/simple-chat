@@ -69,7 +69,6 @@ function withModelManager(_models=[]) {
                         </DialogActions>
                     </Fragment>
                 ),
-
             },
         };
 

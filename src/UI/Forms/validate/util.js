@@ -9,7 +9,6 @@ function debounce(fn, timeToWait) {
             fn(...args);
             timer = null;
         }, timeToWait);
-
     };
     // Provide a cancellation function attached to the executer.
     executer.cancel = () => clearTimeout(timer);
