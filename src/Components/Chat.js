@@ -85,7 +85,7 @@ function Chat({ joinRoom, sendMessage, messages, classes, className }) {
 
     return (
         <div className={classNames(classes.container, className)}>
-            <Paper className={classes.paper}>
+            <Paper elevation={5} className={classes.paper}>
                 <div className={classes.messageContainer}>
                     <div className={classes.list} ref={listContainer}>
                         <List ref={listRef}>

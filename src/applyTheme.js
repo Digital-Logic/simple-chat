@@ -38,6 +38,12 @@ const themes = {
     }),
     [THEME_TYPE.LIGHT]: createMuiTheme({
         ...common,
+        palette: {
+            type: 'light',
+            primary: {
+                main: '#4f68f2'
+            }
+        }
     })
 };
 

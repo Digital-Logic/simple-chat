@@ -7,6 +7,7 @@ import { debounce } from '../util';
 import { authActions } from '../Store';
 import Progress from '@material-ui/core/CircularProgress';
 import CheckIcon from '@material-ui/icons/Check';
+import ClearIcon from '@material-ui/icons/Clear';
 import { ModelContext } from '../Models/withModelManager';
 
 class NewUser extends PureComponent {
@@ -17,7 +18,6 @@ class NewUser extends PureComponent {
 
     checkIsAvailable = debounce(() => {
         const { name } = this.state;
-
         this.props.checkUserAvailable(name);
     }, 500);
 
@@ -47,6 +47,8 @@ class NewUser extends PureComponent {
             return <Progress thickness={5} size={20} />;
         } else if (available[name] && available[name].available) {
             return  <CheckIcon style={{ color: '#00d000' }}/>;
+        } else if (available[name] && !available[name].available){
+            return <ClearIcon style={{ color: 'red'}} />;
         } else {
             return null;
         }

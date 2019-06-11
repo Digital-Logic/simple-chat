@@ -5,7 +5,7 @@ import applyTheme from './applyTheme';
 import AppBar from './Components/AppBar';
 import withModelManager, { ModelContext, MODEL_STATES } from './Models/withModelManager';
 import NewUserModel from './Models/NewUserModel';
-import { authActions, AUTH_ACTIONS, chatActions } from './Store';
+import { authActions, AUTH_ACTIONS, chatActions, themeActions } from './Store';
 import { SOCKET_ACTIONS } from './Store/SocketMiddleware';
 import UserList from './Components/UserList';
 import Grid from '@material-ui/core/Grid';
@@ -25,7 +25,10 @@ const styles = theme => ({
         ...theme.mixins.toolbar
     },
     container: {
-        height: '100vh'
+        height: '100vh',
+        maxWidth: 1000,
+        marginLeft: 'auto',
+        marginRight: 'auto'
     },
     chatContainer: {
         padding: 8,
@@ -41,7 +44,7 @@ const styles = theme => ({
 
 
 function App({ setupListeners, logout, isAuthenticated, dispatch,
-        classes, sendMessage, joinRoom, messages }) {
+        classes, sendMessage, joinRoom, messages, themeStyle, toggleTheme }) {
 
     const { state, setState, createModel, STATES } = useContext(ModelContext);
 
@@ -64,7 +67,7 @@ function App({ setupListeners, logout, isAuthenticated, dispatch,
 
         dispatch({
             type: SOCKET_ACTIONS.SUBSCRIBE,
-            event: 'user_created',
+            event: AUTH_ACTIONS.CREATE_USER_SUCCESS,
             handle: data => {
                 setState(STATES.CLOSED);
                 dispatch({
@@ -76,11 +79,7 @@ function App({ setupListeners, logout, isAuthenticated, dispatch,
 
         dispatch({
             type: SOCKET_ACTIONS.SUBSCRIBE,
-            event: 'user_create_failed',
-            handle: data => {
-                dispatch({
-                });
-            }
+            event: AUTH_ACTIONS.CREATE_USER_FAILURE,
         });
     },[]);
 
@@ -95,7 +94,9 @@ function App({ setupListeners, logout, isAuthenticated, dispatch,
         <div>
             <AppBar
                 logout={logout}
-                isAuthenticated={isAuthenticated} />
+                isAuthenticated={isAuthenticated}
+                themeStyle={themeStyle}
+                toggleTheme={toggleTheme} />
             {
                 isAuthenticated ? (
                     <Grid container direction="column" wrap="nowrap" className={classes.container}>
@@ -105,7 +106,7 @@ function App({ setupListeners, logout, isAuthenticated, dispatch,
                                 <Chat
                                     className={classes.chatWindow}
                                     sendMessage={sendMessage}
-                                    messages={messages.general}
+                                    messages={messages}
                                     joinRoom={joinRoom}/>
                             </Grid>
                             <Grid item xs={4}>
@@ -131,6 +132,7 @@ function mapDispatch(dispatch) {
         logout: () => dispatch(authActions.logout()),
         sendMessage: message => dispatch(chatActions.createMessage(message)),
         joinRoom: room => dispatch(chatActions.joinRoom(room)),
+        toggleTheme: () => dispatch(themeActions.switchTheme()),
         dispatch
     };
 }
@@ -138,7 +140,8 @@ function mapDispatch(dispatch) {
 function mapState(state) {
     return {
        isAuthenticated: state.auth.isAuthenticated,
-       messages: state.chat
+       messages: state.chat,
+       themeStyle: state.theme.style,
     };
 }
 

@@ -1,4 +1,8 @@
 
+const ACTIONS = Object.freeze({
+    SWITCH_THEME: 'SWITCH_THEME',
+});
+
 const THEME_TYPE = Object.freeze({
     LIGHT: 'LIGHT_THEME',
     DARK: 'DARK_THEME'
@@ -10,15 +14,11 @@ const initialState = {
 
 function reducer(state=initialState, { type }) {
     switch(type) {
-        case THEME_TYPE.LIGHT:
+        case ACTIONS.SWITCH_THEME:
             return {
                 ...state,
-                theme: THEME_TYPE.LIGHT
-            };
-        case THEME_TYPE.DARK:
-            return {
-                ...state,
-                theme: THEME_TYPE.DARK
+                style: state.style === THEME_TYPE.DARK ?
+                    THEME_TYPE.LIGHT : THEME_TYPE.DARK
             };
         default:
             return state;
@@ -27,5 +27,6 @@ function reducer(state=initialState, { type }) {
 
 export {
     THEME_TYPE,
-    reducer
+    reducer,
+    ACTIONS
 };

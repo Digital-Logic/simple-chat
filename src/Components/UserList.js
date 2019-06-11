@@ -34,8 +34,9 @@ class UserList extends PureComponent {
         const { users } = this.props;
         return (
             <Grid container direction="column">
-                <Paper>
+                <Paper elevation={5}>
                     <List>
+                        <Typography variant="subtitle2" align="center">Users</Typography>
                     {
                         Object.entries(users).map(([user, data]) => (
                             <ListItem key={user}>

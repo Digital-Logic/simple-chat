@@ -43,6 +43,7 @@ function InputComponent({label, classes, value, onChange, errorMessage, asyncAct
                             value={value}
                             onChange={onChange}
                             {...props }/>
+
                     <FormHelperText className={classes.error}>{ errorMessage }</FormHelperText>
                 </FormControl>
             </Grid>
