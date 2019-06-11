@@ -5,15 +5,43 @@ import applyTheme from './applyTheme';
 import AppBar from './Components/AppBar';
 import withModelManager, { ModelContext, MODEL_STATES } from './Models/withModelManager';
 import NewUserModel from './Models/NewUserModel';
-import { userActions, authActions, AUTH_ACTIONS } from './Store';
+import { authActions, AUTH_ACTIONS, chatActions } from './Store';
 import { SOCKET_ACTIONS } from './Store/SocketMiddleware';
+import UserList from './Components/UserList';
+import Grid from '@material-ui/core/Grid';
+import Chat from './Components/Chat';
+import { withStyles } from '@material-ui/core/styles';
+import PropTypes from 'prop-types';
 
 const ModelStates = {
     ...MODEL_STATES,
     NEW_USER: 'NEW_USER'
 };
 
-function App({ setupListeners, dispatch }) {
+const styles = theme => ({
+    appBarSpacer: {
+        width: '100%',
+        marginBottom: '20px',
+        ...theme.mixins.toolbar
+    },
+    container: {
+        height: '100vh'
+    },
+    chatContainer: {
+        padding: 8,
+        margin: 0,
+        width: '100%',
+        height: '100%'
+    },
+    chatWindow: {
+    },
+    userWindow: {
+    }
+});
+
+
+function App({ setupListeners, logout, isAuthenticated, dispatch,
+        classes, sendMessage, joinRoom, messages }) {
 
     const { state, setState, createModel, STATES } = useContext(ModelContext);
 
@@ -28,8 +56,10 @@ function App({ setupListeners, dispatch }) {
                     }
                 }
             });
-        setState(ModelStates.NEW_USER);
 
+        /**
+         * Subscribe to Socket.io listeners
+         */
         setupListeners();
 
         dispatch({
@@ -49,37 +79,72 @@ function App({ setupListeners, dispatch }) {
             event: 'user_create_failed',
             handle: data => {
                 dispatch({
-                })
+                });
             }
         });
-
     },[]);
+
+    useEffect(() => {
+        if (!isAuthenticated)
+        {
+            setState(ModelStates.NEW_USER);
+        }
+    },[isAuthenticated]);
 
     return (
         <div>
-            <AppBar />
+            <AppBar
+                logout={logout}
+                isAuthenticated={isAuthenticated} />
+            {
+                isAuthenticated ? (
+                    <Grid container direction="column" wrap="nowrap" className={classes.container}>
+                        <div className={classes.appBarSpacer} />
+                        <Grid container spacing={4} className={classes.chatContainer}>
+                            <Grid item xs={8}>
+                                <Chat
+                                    className={classes.chatWindow}
+                                    sendMessage={sendMessage}
+                                    messages={messages.general}
+                                    joinRoom={joinRoom}/>
+                            </Grid>
+                            <Grid item xs={4}>
+                                <UserList
+                                    className={classes.userWindow}
+                                />
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                ): null
+            }
         </div>
     );
 }
 
+App.propTypes = {
+    classes: PropTypes.object.isRequired
+};
+
 function mapDispatch(dispatch) {
     return {
-        setupListeners: () => {
-            dispatch(userActions.setupListeners());
-            dispatch(authActions.setupListeners());
-        },
+        setupListeners: () => dispatch(authActions.setupListeners()),
+        logout: () => dispatch(authActions.logout()),
+        sendMessage: message => dispatch(chatActions.createMessage(message)),
+        joinRoom: room => dispatch(chatActions.joinRoom(room)),
         dispatch
     };
 }
 
 function mapState(state) {
     return {
-
+       isAuthenticated: state.auth.isAuthenticated,
+       messages: state.chat
     };
 }
 
 export default compose(
     connect(mapState, mapDispatch),
     applyTheme,
+    withStyles(styles),
     withModelManager(),
 )(App);
