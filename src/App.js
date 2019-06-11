@@ -46,6 +46,7 @@ const styles = theme => ({
 function App({ setupListeners, logout, isAuthenticated, dispatch,
         classes, sendMessage, joinRoom, messages, themeStyle, toggleTheme }) {
 
+    // eslint-disable-next-line no-unused-vars
     const { state, setState, createModel, STATES } = useContext(ModelContext);
 
     useEffect(() => {
@@ -81,6 +82,7 @@ function App({ setupListeners, logout, isAuthenticated, dispatch,
             type: SOCKET_ACTIONS.SUBSCRIBE,
             event: AUTH_ACTIONS.CREATE_USER_FAILURE,
         });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     },[]);
 
     useEffect(() => {
@@ -88,6 +90,7 @@ function App({ setupListeners, logout, isAuthenticated, dispatch,
         {
             setState(ModelStates.NEW_USER);
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     },[isAuthenticated]);
 
     return (

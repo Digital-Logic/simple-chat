@@ -1,5 +1,3 @@
-import { SOCKET_ACTIONS } from '../SocketMiddleware';
-
 const ACTIONS = Object.freeze({
     CREATE_USER_REQUEST: 'CREATE_USER_REQUEST',
     CREATE_USER_SUCCESS: 'CREATE_USER_SUCCESS',

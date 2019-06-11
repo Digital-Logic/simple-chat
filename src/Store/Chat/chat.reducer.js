@@ -1,4 +1,3 @@
-import { SOCKET_ACTIONS } from '../SocketMiddleware';
 const ACTIONS = Object.freeze({
     MESSAGE_SENT: 'MESSAGE_SENT',
     MESSAGE_RECEIVED: 'MESSAGE_RECEIVED'

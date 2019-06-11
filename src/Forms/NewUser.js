@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Form, ProgressInput, required, minLength } from '../UI/Forms';
+import { Form, ProgressInput } from '../UI/Forms';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import { connect } from 'react-redux';
@@ -24,8 +24,6 @@ class NewUser extends PureComponent {
     onChange = this.onChange.bind(this);
     onChange(event) {
         const { name, value } = event.target;
-        const { available } = this.props;
-
 
         this.setState({
             [name]: value

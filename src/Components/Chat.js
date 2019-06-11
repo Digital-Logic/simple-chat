@@ -55,7 +55,7 @@ function Chat({ joinRoom, sendMessage, messages, classes, className }) {
     const listContainer = useRef();
 
     const onChange = useCallback(event => {
-        const { name, value } = event.target;
+        const { value } = event.target;
         setMessage(value);
     },[]);
 
@@ -64,6 +64,7 @@ function Chat({ joinRoom, sendMessage, messages, classes, className }) {
             sendMessage(message);
             setMessage('');
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [message]);
 
     const onEnterPress = useCallback(key => {
