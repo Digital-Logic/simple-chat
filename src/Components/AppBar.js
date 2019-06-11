@@ -17,12 +17,14 @@ const styles = theme => ({
     }
 });
 
-function AppBar({ classes }) {
+function AppBar({ classes, logout, isAuthenticated }) {
     return (
         <AppBarComponent position="fixed">
             <Toolbar color="primary">
                 <Typography variant="h4" className={classes.title}>Chat App</Typography>
-
+                {
+                    isAuthenticated ? <Button onClick={logout}>Logout</Button> : null
+                }
             </Toolbar>
         </AppBarComponent>
     );
