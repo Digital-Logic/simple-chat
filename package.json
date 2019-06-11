@@ -52,6 +52,7 @@
     "mongoose": "^5.5.12",
     "morgan": "^1.9.1",
     "nodemailer": "^5.1.1",
+    "socket.io": "^2.2.0",
     "validator": "^10.11.0",
     "winston": "^3.2.1",
     "winston-daily-rotate-file": "^3.9.0"
