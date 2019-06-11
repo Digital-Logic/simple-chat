@@ -3,18 +3,18 @@ import { SOCKET_ACTIONS } from '../SocketMiddleware';
 
 function setupListeners() {
     return dispatch => {
-        dispatch({
+        return dispatch({
             type: SOCKET_ACTIONS.SUBSCRIBE,
-            event: 'user_exist'
+            event: ACTIONS.CHECK_USER_AVAILABLE_RESPONSE
         });
     }
 }
 
 function checkUserAvailable(user) {
     return dispatch => {
-        dispatch({
+        return dispatch({
             type: SOCKET_ACTIONS.EMIT,
-            event: 'user_exist',
+            event: ACTIONS.CHECK_USER_AVAILABLE_REQUEST,
             data: user
         });
     };
@@ -24,11 +24,7 @@ function logout() {
     return dispatch => {
         dispatch({
             type: SOCKET_ACTIONS.EMIT,
-            event: 'log_out',
-        });
-
-        dispatch({
-            type: ACTIONS.LOG_OUT
+            event: ACTIONS.LOG_OUT,
         });
     };
 }
@@ -37,13 +33,8 @@ function createUser({ user, model }) {
     return dispatch => {
         // update the model to loading
         dispatch({
-            type: ACTIONS.CREATE_USER_REQUEST,
-            user
-        });
-
-        dispatch({
             type: SOCKET_ACTIONS.EMIT,
-            event: 'create_user',
+            event: ACTIONS.CREATE_USER_REQUEST,
             data: user
         });
 

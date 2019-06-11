@@ -1,29 +1,24 @@
 import { SOCKET_ACTIONS } from '../SocketMiddleware';
 const ACTIONS = Object.freeze({
-    MESSAGE: 'MESSAGE'
+    MESSAGE_SENT: 'MESSAGE_SENT',
+    MESSAGE_RECEIVED: 'MESSAGE_RECEIVED'
 });
 
-const initialState = {
-    general: []
-}
+const initialState = [];
 
-function reducer(state=initialState, { type, event, data }) {
+function reducer(state=initialState, { type, data }) {
     switch(type){
-        case SOCKET_ACTIONS.EVENT_RECEIVED:
-            switch (event) {
-                case 'message':
-                    return {
-                        ...state,
-                        general: [
-                            ...state.general,
-                            {
-                                ...data
-                            }
-                        ]
-                    };
-                default:
-                    return state;
-            }
+        case ACTIONS.MESSAGE_SENT:
+            return state;
+
+        case ACTIONS.MESSAGE_RECEIVED:
+            return [
+                ...state,
+                {
+                    ...data
+                }
+            ];
+
         default:
             return state;
     }

@@ -5,7 +5,7 @@ function subscribeUserList() {
     return dispatch => {
         return dispatch({
             type: SOCKET_ACTIONS.SUBSCRIBE,
-            event: 'update_user_list'
+            event: ACTIONS.UPDATE_USER_LIST
         });
     };
 }
@@ -14,7 +14,7 @@ function unsubscribeUserList(handler){
     return dispatch => {
         return dispatch({
             type: SOCKET_ACTIONS.UNSUBSCRIBE,
-            event: 'update_user_list',
+            event: ACTIONS.UPDATE_USER_LIST,
             handler
         });
     };

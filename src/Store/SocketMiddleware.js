@@ -20,7 +20,7 @@ function socketMiddleware() {
 
         switch(type) {
             case ACTIONS.SUBSCRIBE:
-                dispatch({ type: 'SOCKET_IO_SUBSCRIBE_EVENT',
+                dispatch({ type: `SUBSCRIBE ${event}`,
                     event,
                     handle: typeof handle === 'function' ? `function: ${handle.name}` : handle  });
                 // All events captured by socket.io will be dispatched through redux as
@@ -30,7 +30,7 @@ function socketMiddleware() {
                 return onEvent;
 
             case ACTIONS.UNSUBSCRIBE:
-                dispatch({ type: 'SOCKET_IO_UNSUBSCRIBE_EVENT',
+                dispatch({ type: `UNSUBSCRIBE ${event}`,
                     event,
                     handle: typeof handle === 'function' ? `function: ${handle.name}` : handle });
                 if (typeof handler !== 'function')
@@ -40,7 +40,7 @@ function socketMiddleware() {
                 break;
 
             case ACTIONS.EMIT:
-                dispatch({ type: ACTIONS.EMIT_EVENT, event, data});
+                dispatch({ type: event, data});
                 return socket.emit(event, data);
 
             default:
@@ -48,7 +48,7 @@ function socketMiddleware() {
         }
 
         function defaultHandle(event) {
-            return data => dispatch({ type: ACTIONS.EVENT_RECEIVED, event, data });
+            return data => dispatch({ type: event, data });
         }
     };
 }

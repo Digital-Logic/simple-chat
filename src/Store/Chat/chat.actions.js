@@ -5,19 +5,18 @@ function joinRoom(room='general') {
     return dispatch => {
         return dispatch({
             type: SOCKET_ACTIONS.SUBSCRIBE,
-            event: 'message'
+            event: ACTIONS.MESSAGE_RECEIVED
         });
     };
 }
 
 
-function createMessage(message, room='general') {
+function createMessage(message) {
     return dispatch => {
         dispatch({
             type: SOCKET_ACTIONS.EMIT,
-            event: 'message',
+            event: ACTIONS.MESSAGE_SENT,
             data: {
-                room,
                 message
             }
         });
