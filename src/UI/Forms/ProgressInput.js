@@ -25,7 +25,7 @@ const styles = theme => ({
         }
     },
     checkContainer: {
-        width: '40px',
+        width: '30px',
         paddingLeft: '10px'
     },
     disabled:{}
