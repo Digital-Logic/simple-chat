@@ -10,42 +10,42 @@ function create(server, options) {
 
         socket.on('disconnect', () => {
             delete(users[socket.userHandle])
-            socket.emit('Logout_success');
+            socket.emit('LOGOUT_SUCCESS');
             updateUsers();
         });
 
-        socket.on('message', ({ message, room }) => {
-            io.emit('message', {
+        socket.on('MESSAGE_SENT', ({ message }) => {
+            io.emit('MESSAGE_RECEIVED', {
                 user: socket.userHandle,
                 message
             });
         });
 
 
-        socket.on('user_exist', user => {
-            socket.emit('user_exist', { [user]: !Boolean(users[user]) });
+        socket.on('CHECK_USER_AVAILABLE_REQUEST', user => {
+            socket.emit('CHECK_USER_AVAILABLE_RESPONSE', { [user]: !Boolean(users[user]) });
         });
 
-        socket.on('create_user', user => {
+        socket.on('CREATE_USER_REQUEST', user => {
             if (users[user]) {
                 // user already exists, emit error
-                socket.emit('user_create_failed', `User ${user} already exist.`);
+                socket.emit('CREATE_USER_FAILURE', `User ${user} already exist.`);
             } else {
                 users[user] = {};
                 socket.userHandle = user;
-                socket.emit('user_created', user);
+                socket.emit('CREATE_USER_SUCCESS', user);
 
                 updateUsers();
             }
         });
 
-        socket.on('log_out', () => {
+        socket.on('LOG_OUT', () => {
             delete users[socket.userHandle];
             updateUsers();
         });
 
         function updateUsers() {
-            io.emit('update_user_list', Object.keys(users));
+            io.emit('UPDATE_USER_LIST', Object.keys(users));
         }
     });
 
