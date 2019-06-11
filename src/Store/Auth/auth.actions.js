@@ -21,8 +21,15 @@ function checkUserAvailable(user) {
 }
 
 function logout() {
-    return {
-        type: ACTIONS.LOG_OUT
+    return dispatch => {
+        dispatch({
+            type: SOCKET_ACTIONS.EMIT,
+            event: 'log_out',
+        });
+
+        dispatch({
+            type: ACTIONS.LOG_OUT
+        });
     };
 }
 
