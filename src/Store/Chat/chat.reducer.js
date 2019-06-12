@@ -1,3 +1,5 @@
+import { AUTH_ACTIONS } from '../Auth';
+
 const ACTIONS = Object.freeze({
     MESSAGE_SENT: 'MESSAGE_SENT',
     MESSAGE_RECEIVED: 'MESSAGE_RECEIVED'
@@ -17,6 +19,9 @@ function reducer(state=initialState, { type, data }) {
                     ...data
                 }
             ];
+
+        case AUTH_ACTIONS.LOG_OUT:
+            return initialState;
 
         default:
             return state;

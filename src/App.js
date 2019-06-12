@@ -43,8 +43,8 @@ const styles = theme => ({
 });
 
 
-function App({ setupListeners, logout, isAuthenticated, dispatch,
-        classes, sendMessage, joinRoom, messages, themeStyle, toggleTheme }) {
+function App({ setupListeners, isAuthenticated, dispatch,  subscribeToChat, unsubscribeToChat,
+        classes, sendMessage, messages, themeStyle, toggleTheme, logout }) {
 
     // eslint-disable-next-line no-unused-vars
     const { state, setState, createModel, STATES } = useContext(ModelContext);
@@ -110,7 +110,8 @@ function App({ setupListeners, logout, isAuthenticated, dispatch,
                                     className={classes.chatWindow}
                                     sendMessage={sendMessage}
                                     messages={messages}
-                                    joinRoom={joinRoom}/>
+                                    subscribeToChat={subscribeToChat}
+                                    unsubscribeToChat={unsubscribeToChat}/>
                             </Grid>
                             <Grid item xs={4}>
                                 <UserList
@@ -134,7 +135,8 @@ function mapDispatch(dispatch) {
         setupListeners: () => dispatch(authActions.setupListeners()),
         logout: () => dispatch(authActions.logout()),
         sendMessage: message => dispatch(chatActions.createMessage(message)),
-        joinRoom: room => dispatch(chatActions.joinRoom(room)),
+        subscribeToChat: () => dispatch(chatActions.subscribeToChat()),
+        unsubscribeToChat: (handle) => dispatch(chatActions.unsubscribeToChat(handle)),
         toggleTheme: () => dispatch(themeActions.switchTheme()),
         dispatch
     };

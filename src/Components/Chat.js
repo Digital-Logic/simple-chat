@@ -47,7 +47,7 @@ const styles = theme => ({
     }
 });
 
-function Chat({ joinRoom, sendMessage, messages, classes, className }) {
+function Chat({ subscribeToChat, unsubscribeToChat, sendMessage, messages, classes, className }) {
 
     const [message, setMessage] = useState('');
     const inputRef = useRef();
@@ -71,11 +71,13 @@ function Chat({ joinRoom, sendMessage, messages, classes, className }) {
         const _key = key.which || key.key;
         if (_key === 13)
             onSubmit();
-
     },[onSubmit]);
 
     useEffect(() => {
-        joinRoom();
+        const chatHandler = subscribeToChat();
+        return () => {
+            unsubscribeToChat(chatHandler);
+        }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     },[]);
 
