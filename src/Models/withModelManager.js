@@ -52,7 +52,6 @@ function withModelManager(_models=[]) {
             models: {
                 [MODEL_STATES.CLOSED]: null,
                 // Generic loading model
-
                 [MODEL_STATES.LOADING]: ({state, onClose}) => (
                     <Fragment>
                         <DialogTitle align="center">Loading</DialogTitle>
@@ -75,12 +74,16 @@ function withModelManager(_models=[]) {
 
             const [{ state, displayState, models, actions }, dispatch] = useReducer(reducer, initialState);
 
-            const contextValue = {
+
+            const contextValue = useMemo(() => ({
                 state,
                 setState: state => dispatch(setState(state)),
                 createModel: (props) => dispatch(createModel(props)),
-                STATES: MODEL_STATES
-            };
+                STATES: Object.keys(models).reduce((acc, key) => {
+                    acc[key] = key;
+                    return acc;
+                },{})
+            }),[state, dispatch, models]);
 
             // Each function defined in this models actions, will be provided with state and setState properties
             // by wrapping these properties with a closure and memorizing them
@@ -88,11 +91,13 @@ function withModelManager(_models=[]) {
                 acc[key] = (data) => fun({
                     state: displayState,
                     setState: state => dispatch(setState(state)),
+                    STATES: contextValue.STATES,
                     ...data
                 });
-
                 return acc;
-            },{}), [displayState, actions]);
+            },{}), [displayState, actions, contextValue.STATES]);
+
+            const CurrentModel = models[displayState];
 
             return (
                 <ModelContext.Provider value={contextValue}>
@@ -101,13 +106,12 @@ function withModelManager(_models=[]) {
                     <Dialog
                         open={state !== MODEL_STATES.CLOSED}
                         onClose={ modelActions.onClose }>
-                    {
-                        models[displayState]({
-                            state: displayState,
-                            actions: modelActions,
-                            onClose: modelActions.onClose
-                        })
-                    }
+
+                        <CurrentModel
+                            state={displayState}
+                            actions={modelActions}
+                            onClose={modelActions.onClose}
+                        />
                     </Dialog>
                 </ModelContext.Provider>
             );
