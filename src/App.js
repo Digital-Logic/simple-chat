@@ -55,13 +55,13 @@ function App({ setupListeners, isAuthenticated, dispatch,  subscribeToChat, unsu
                 key: ModelStates.NEW_USER,
                 model: NewUserModel,
                 actions: {
-                    onClose: ({ state, setState }) => {
-                        if (state !== ModelStates.LOADING && state !== ModelStates.NEW_USER)
-                            setState(ModelStates.CLOSED);
+                    onClose: ({ state, setState, STATES }) => {
+                        console.log(STATES);
+                        if (state !== STATES.LOADING && state !== STATES.NEW_USER)
+                            setState(STATES.CLOSED);
                     }
                 }
             });
-
         /**
          * Subscribe to Socket.io listeners
          */

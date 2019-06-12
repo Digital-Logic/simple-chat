@@ -1,8 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useContext } from 'react';
 import Paper from '@material-ui/core/Paper';
 import List from '@material-ui/core/List';
 import Typography from '@material-ui/core/Typography';
+import { ModelContext } from '../Models/withModelManager';
 import compose from 'recompose/compose';
+import CreateRoom from '../Models/CreateRoom';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
@@ -12,6 +14,7 @@ import { connect } from 'react-redux';
 import { authActions, chatActions } from '../Store';
 import RadioIcon from '@material-ui/icons/RadioButtonUnchecked';
 import RadioCheckedIcon from '@material-ui/icons/RadioButtonChecked'
+import Button from '@material-ui/core/Button';
 
 const styles = theme => ({
 
@@ -20,11 +23,29 @@ const styles = theme => ({
 function Rooms({ rooms, joinRoom, subscribeToJoinRoom, unsubscribeToJoinRoom, currentRoom,
         subscribeToUpdateRoomsList, unsubscribeToUpdateRoomsList, updateRoomsList }) {
 
+
+    const { createModel, setState, STATES } = useContext(ModelContext);
+
     useEffect(() => {
         const joinRoomHandle = subscribeToJoinRoom();
         const roomUpdateHandle = subscribeToUpdateRoomsList();
 
         updateRoomsList(); // get rooms list from server
+
+
+        // Create model CREATE_ROOM
+        createModel({
+            key: 'CREATE_ROOM',
+            model: CreateRoom,
+            actions: {
+                onClose: () => {},
+                onCancel: ({ setState, STATES }) => setState(STATES.CLOSED),
+                onSubmit: ({ setState, STATES, room }) => {
+                    joinRoom( room);
+                    setState(STATES.CLOSED);
+                }
+            }
+        });
 
         return () => {
             unsubscribeToJoinRoom(joinRoomHandle);
@@ -59,6 +80,9 @@ function Rooms({ rooms, joinRoom, subscribeToJoinRoom, unsubscribeToJoinRoom, cu
                         ))
                     }
                 </List>
+                <Button
+                    onClick={() => setState(STATES.CREATE_ROOM)}
+                    fullWidth>Create Room</Button>
             </Paper>
         </Grid>
     );
