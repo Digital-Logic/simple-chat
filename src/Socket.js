@@ -1,12 +1,16 @@
 import socketIO from 'socket.io';
 
 const users = {};
+const rooms = { 'general': Infinity, 'computers': Infinity, 'cats & dogs': Infinity };
 
 function create(server, options) {
 
     const io = socketIO(server, options);
 
     io.on('connection', function(socket) {
+
+        socket.room = 'general';
+        socket.join(socket.room);
 
         socket.on('disconnect', () => {
             delete(users[socket.userHandle])
@@ -15,7 +19,8 @@ function create(server, options) {
         });
 
         socket.on('MESSAGE_SENT', ({ message }) => {
-            io.emit('MESSAGE_RECEIVED', {
+            // Emit message to all clients in current room, including sender -- optimize this out later
+            io.to(socket.room).emit('MESSAGE_RECEIVED', {
                 user: socket.userHandle,
                 message
             });
@@ -37,6 +42,50 @@ function create(server, options) {
 
                 updateUsers();
             }
+        });
+
+        socket.on('JOIN_ROOM_REQUEST', room => {
+            let updateClients = false;
+
+            if (typeof room !== 'string' || room.trim() === '') {
+                socket.emit('JOIN_ROOM_FAILURE', 'Invalid room name');
+                return;
+            }
+            room = room.toLowerCase();
+
+            // create room key in rooms object
+            if (!rooms[room]) {
+                rooms[room] = 0;
+                updateClients = true;
+            }
+            // Increment room counter
+            ++rooms[room];
+
+            if (socket.room) {
+                socket.leave(socket.room);
+                // decrement room counter for old room
+                --rooms[socket.room];
+
+                // No one is in the room, remove it
+                if (rooms[socket.room] === 0) {
+                    delete rooms[socket.room];
+                    updateClients = true;
+                }
+            }
+
+            socket.room = room;
+            socket.join(room);
+
+            socket.emit('JOIN_ROOM_SUCCESS', room);
+
+            // has the rooms list changed? If so, update clients
+            if(updateClients) {
+                io.emit('UPDATE_ROOMS_LIST', Object.keys(rooms));
+            }
+        });
+
+        socket.on('UPDATE_ROOMS_LIST_REQUEST', () => {
+            socket.emit('UPDATE_ROOMS_LIST', Object.keys(rooms));
         });
 
         socket.on('LOG_OUT', () => {
