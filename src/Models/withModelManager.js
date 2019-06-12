@@ -48,7 +48,6 @@ function withModelManager(_models=[]) {
                             setState(MODEL_STATES.CLOSED);
                     }
                 }
-
             },
             models: {
                 [MODEL_STATES.CLOSED]: null,

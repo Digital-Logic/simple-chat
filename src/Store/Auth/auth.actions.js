@@ -42,10 +42,21 @@ function createUser({ user, model }) {
     };
 }
 
+function joinRoom(room) {
+    return dispatch => {
+        return dispatch({
+            type: SOCKET_ACTIONS.EMIT,
+            event: ACTIONS.JOIN_ROOM_REQUEST,
+            data: room
+        });
+    };
+}
+
 
 export {
     setupListeners,
     checkUserAvailable,
     createUser,
+    joinRoom,
     logout
 }

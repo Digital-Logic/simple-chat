@@ -24,9 +24,10 @@ function socketMiddleware() {
                     event,
                     handle: typeof handle === 'function' ? `function: ${handle.name}` : handle  });
                 // All events captured by socket.io will be dispatched through redux
-                const onEvent = typeof handle === 'function' ? handle : defaultHandle(event);
-                socket.on(event, onEvent);
-                return onEvent;
+                const eventHandler = typeof handle === 'function' ? handle : defaultHandle(event);
+                socket.on(event, eventHandler);
+                // return the event handler, so the caller can unsubscribe from the event.
+                return eventHandler;
 
             case ACTIONS.UNSUBSCRIBE:
                 dispatch({ type: `UNSUBSCRIBE ${event}`, event });

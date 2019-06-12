@@ -5,13 +5,16 @@ const ACTIONS = Object.freeze({
     USER_ALREADY_EXIST: 'USER_ALREADY_EXIST',
     CHECK_USER_AVAILABLE_REQUEST: 'CHECK_USER_AVAILABLE_REQUEST',
     CHECK_USER_AVAILABLE_RESPONSE: 'CHECK_USER_AVAILABLE_RESPONSE',
-    LOG_OUT: 'LOG_OUT'
+    LOG_OUT: 'LOG_OUT',
+    JOIN_ROOM_REQUEST: 'JOIN_ROOM_REQUEST',
+    JOIN_ROOM_SUCCESS: 'JOIN_ROOM_SUCCESS'
 });
 
 const initialState = {
     isAuthenticating: false,
     isAuthenticated: false,
     userHandle: null,
+    room: 'general',
     availableHandles: {}
 }
 
@@ -23,6 +26,12 @@ function reducer(state=initialState, { type, event, data, userHandle, error }) {
                 ...state,
                 isAuthenticating: true,
                 isAuthenticated: false
+            };
+
+        case ACTIONS.JOIN_ROOM_SUCCESS:
+            return {
+                ...state,
+                room: data
             };
 
         case ACTIONS.CREATE_USER_SUCCESS:

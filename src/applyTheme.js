@@ -41,7 +41,11 @@ const themes = {
         palette: {
             type: 'light',
             primary: {
-                main: '#4f68f2'
+                //main: '#4f68f2',
+                main: '#219cd1'
+            },
+            background: {
+                default: '#dcdcdc'
             }
         }
     })

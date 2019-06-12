@@ -10,6 +10,7 @@ import { SOCKET_ACTIONS } from './Store/SocketMiddleware';
 import UserList from './Components/UserList';
 import Grid from '@material-ui/core/Grid';
 import Chat from './Components/Chat';
+import Rooms from './Components/Rooms';
 import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 
@@ -44,7 +45,7 @@ const styles = theme => ({
 
 
 function App({ setupListeners, isAuthenticated, dispatch,  subscribeToChat, unsubscribeToChat,
-        classes, sendMessage, messages, themeStyle, toggleTheme, logout }) {
+        classes, sendMessage, messages, themeStyle, toggleTheme, logout, }) {
 
     // eslint-disable-next-line no-unused-vars
     const { state, setState, createModel, STATES } = useContext(ModelContext);
@@ -117,6 +118,8 @@ function App({ setupListeners, isAuthenticated, dispatch,  subscribeToChat, unsu
                                 <UserList
                                     className={classes.userWindow}
                                 />
+
+                                <Rooms />
                             </Grid>
                         </Grid>
                     </Grid>
@@ -145,7 +148,8 @@ function mapDispatch(dispatch) {
 function mapState(state) {
     return {
        isAuthenticated: state.auth.isAuthenticated,
-       messages: state.chat,
+       messages: state.chat.messages,
+       rooms: state.chat.rooms,
        themeStyle: state.theme.style,
     };
 }
