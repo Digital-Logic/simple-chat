@@ -33,6 +33,7 @@ function unsubscribeToJoinRoom(handle) {
     return dispatch => {
         return dispatch({
             type: SOCKET_ACTIONS.UNSUBSCRIBE,
+            event: ACTIONS.JOIN_ROOM_SUCCESS,
             handle
         });
     };
@@ -51,6 +52,7 @@ function unsubscribeToUpdateRoomsList(handle) {
     return dispatch => {
         return dispatch({
             type: SOCKET_ACTIONS.UNSUBSCRIBE,
+            event: ACTIONS.UPDATE_ROOMS_LIST,
             handle
         });
     };

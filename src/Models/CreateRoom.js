@@ -48,7 +48,7 @@ function CreateRoom({ classes, state, onClose, actions }) {
 
                         <Button
                             style={{ textTransform: 'none' }}
-                            onClick={actions.cancel}>Cancel</Button>
+                            onClick={actions.onCancel}>Cancel</Button>
                         <Button
                             variant="outlined"
                             type="submit">Submit</Button>
