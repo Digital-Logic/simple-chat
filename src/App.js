@@ -10,6 +10,8 @@ import { SOCKET_ACTIONS } from './Store/SocketMiddleware';
 import UserList from './Components/UserList';
 import Grid from '@material-ui/core/Grid';
 import Chat from './Components/Chat';
+import Typography from '@material-ui/core/Typography';
+import Button from '@material-ui/core/Button';
 import Rooms from './Components/Rooms';
 import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
@@ -41,6 +43,23 @@ const styles = theme => ({
     chatWindow: {
     },
     userWindow: {
+    },
+    footer: {
+        position: 'absolute',
+        bottom: 0, left: 0, right: 0,
+        height: '30px',
+        backgroundColor: theme.palette.primary.dark,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0 20px',
+        '& > span': {
+            display: 'flex',
+            alignItems: 'center'
+        }
+    },
+    footerSpacer: {
+        height: '30px'
     }
 });
 
@@ -114,22 +133,24 @@ function App({ setupListeners, isAuthenticated, dispatch,  subscribeToChat, unsu
                                     messages={messages}
                                     subscribeToChat={subscribeToChat}
                                     unsubscribeToChat={unsubscribeToChat}/>
-
                             </Grid>
                             <Grid container item xs={4} spacing={4} direction="column">
                                 <Grid item style={{ height: '50%'}}>
-                                    <UserList
-                                        className={classes.userWindow}
-                                    />
+                                    <UserList className={classes.userWindow} />
                                 </Grid>
                                 <Grid item style={{ height: '50%'}}>
                                     <Rooms />
                                 </Grid>
                             </Grid>
                         </Grid>
+                        <div className={classes.footerSpacer} />
                     </Grid>
                 ): null
             }
+            <div className={classes.footer}>
+                <Typography variant="span">Source: <Button size="small">Github.com</Button></Typography>
+                <Button href="https://digital-logic.net/" target="_blank" size="small">digital-logic.net</Button>
+            </div>
         </div>
     );
 }
