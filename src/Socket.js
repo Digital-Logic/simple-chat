@@ -13,7 +13,9 @@ function create(server, options) {
         socket.join(socket.room);
 
         socket.on('disconnect', () => {
-            delete(users[socket.userHandle])
+            leaveRoom() && io.emit('UPDATE_ROOMS_LIST', Object.keys(rooms));
+
+            delete(users[socket.userHandle]);
             socket.emit('LOGOUT_SUCCESS');
             updateUsers();
         });
@@ -25,7 +27,6 @@ function create(server, options) {
                 message
             });
         });
-
 
         socket.on('CHECK_USER_AVAILABLE_REQUEST', user => {
             socket.emit('CHECK_USER_AVAILABLE_RESPONSE', { [user]: !Boolean(users[user]) });
@@ -44,11 +45,25 @@ function create(server, options) {
             }
         });
 
+        function leaveRoom() {
+            if (socket.room) {
+                socket.leave(socket.room);
+                // decrement room counter for old room
+                --rooms[socket.room];
+                // No one is in the room, remove it
+                if (rooms[socket.room] === 0) {
+                    delete rooms[socket.room];
+                    return true;
+                }
+            }
+            return false;
+        }
+
         socket.on('JOIN_ROOM_REQUEST', room => {
             let updateClients = false;
 
             if (typeof room !== 'string' || room.trim() === '') {
-                socket.emit('JOIN_ROOM_FAILURE', 'Invalid room name');
+                socket.emit('JOIN_ROOM_FAILURE', `Invalid room name: ${room}`);
                 return;
             }
             room = room.toLowerCase();
@@ -61,17 +76,7 @@ function create(server, options) {
             // Increment room counter
             ++rooms[room];
 
-            if (socket.room) {
-                socket.leave(socket.room);
-                // decrement room counter for old room
-                --rooms[socket.room];
-
-                // No one is in the room, remove it
-                if (rooms[socket.room] === 0) {
-                    delete rooms[socket.room];
-                    updateClients = true;
-                }
-            }
+            updateClients = leaveRoom() || updateClients;
 
             socket.room = room;
             socket.join(room);
@@ -89,6 +94,7 @@ function create(server, options) {
         });
 
         socket.on('LOG_OUT', () => {
+            leaveRoom() && io.emit('UPDATE_ROOMS_LIST', Object.keys(rooms));
             delete users[socket.userHandle];
             updateUsers();
         });
