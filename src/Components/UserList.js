@@ -9,6 +9,7 @@ import { connect } from 'react-redux';
 import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 import Grid from '@material-ui/core/Grid';
+import ScrollPaper from './ScrollPaper';
 import { userActions } from '../Store';
 
 const styles = theme => ({
@@ -28,8 +29,7 @@ function UserList ({ users, subscribeUserList, unsubscribeUserList }) {
     },[]);
 
     return (
-        <Grid container direction="column">
-            <Paper elevation={5}>
+        <ScrollPaper>
                 <List>
                     <Typography variant="subtitle2" align="center">Users</Typography>
                 {
@@ -40,8 +40,7 @@ function UserList ({ users, subscribeUserList, unsubscribeUserList }) {
                     ))
                 }
                 </List>
-            </Paper>
-        </Grid>
+        </ScrollPaper>
     );
 }
 

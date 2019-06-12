@@ -15,13 +15,28 @@ import { authActions, chatActions } from '../Store';
 import RadioIcon from '@material-ui/icons/RadioButtonUnchecked';
 import RadioCheckedIcon from '@material-ui/icons/RadioButtonChecked'
 import Button from '@material-ui/core/Button';
+import ScrollPaper from './ScrollPaper';
+import PropTypes from 'prop-types';
 
 const styles = theme => ({
-
+    paper: {
+        display: 'flex',
+        flexDirection: 'column'
+    },
+    listContainer: {
+        flexGrow: 1,
+        position: 'relative'
+    },
+    list: {
+        position: 'absolute',
+        top: 0, left: 0, right: 0, bottom: 0,
+        overflow: 'auto',
+        overflowX: 'hidden'
+    }
 });
 
 function Rooms({ rooms, joinRoom, subscribeToJoinRoom, unsubscribeToJoinRoom, currentRoom,
-        subscribeToUpdateRoomsList, unsubscribeToUpdateRoomsList, updateRoomsList }) {
+        subscribeToUpdateRoomsList, unsubscribeToUpdateRoomsList, updateRoomsList, classes }) {
 
 
     const { createModel, setState, STATES } = useContext(ModelContext);
@@ -55,12 +70,12 @@ function Rooms({ rooms, joinRoom, subscribeToJoinRoom, unsubscribeToJoinRoom, cu
     },[]);
 
     return (
-        <Grid container direction="column">
-            <Paper elevation={5}>
-                <List>
+        <ScrollPaper className={classes.paper}>
+            <div className={classes.listContainer}>
+                <List className={classes.list}>
                     <Typography
                         variant="subtitle2"
-                        align="center">Rooms</Typography>
+                        align="center">Chat Rooms</Typography>
 
                     {
                         rooms.map(room => (
@@ -80,13 +95,17 @@ function Rooms({ rooms, joinRoom, subscribeToJoinRoom, unsubscribeToJoinRoom, cu
                         ))
                     }
                 </List>
-                <Button
-                    onClick={() => setState(STATES.CREATE_ROOM)}
-                    fullWidth>Create Room</Button>
-            </Paper>
-        </Grid>
+            </div>
+            <Button
+                onClick={() => setState(STATES.CREATE_ROOM)}
+                fullWidth>Create Room</Button>
+        </ScrollPaper>
     );
 }
+
+Rooms.propTypes = {
+    classes: PropTypes.object.isRequired
+};
 
 function mapDispatch(dispatch) {
     return {

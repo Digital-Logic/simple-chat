@@ -29,7 +29,8 @@ const styles = theme => ({
         height: '100vh',
         maxWidth: 1000,
         marginLeft: 'auto',
-        marginRight: 'auto'
+        marginRight: 'auto',
+        overflow: 'hidden'
     },
     chatContainer: {
         padding: 8,
@@ -113,13 +114,17 @@ function App({ setupListeners, isAuthenticated, dispatch,  subscribeToChat, unsu
                                     messages={messages}
                                     subscribeToChat={subscribeToChat}
                                     unsubscribeToChat={unsubscribeToChat}/>
-                            </Grid>
-                            <Grid item xs={4}>
-                                <UserList
-                                    className={classes.userWindow}
-                                />
 
-                                <Rooms />
+                            </Grid>
+                            <Grid container item xs={4} spacing={4} direction="column">
+                                <Grid item style={{ height: '50%'}}>
+                                    <UserList
+                                        className={classes.userWindow}
+                                    />
+                                </Grid>
+                                <Grid item style={{ height: '50%'}}>
+                                    <Rooms />
+                                </Grid>
                             </Grid>
                         </Grid>
                     </Grid>
