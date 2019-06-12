@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { useEffect } from 'react';
 import Paper from '@material-ui/core/Paper';
 import compose from 'recompose/compose';
 import List from '@material-ui/core/List';
@@ -17,60 +17,53 @@ const styles = theme => ({
     }
 });
 
-class UserList extends PureComponent {
+function UserList ({ users, subscribeUserList, unsubscribeUserList }) {
 
-    eventHandler = null;
-
-    componentDidMount() {
-        this.eventHandler = this.props.subscribeUserList();
-
-    }
-
-    componentWillUnmount() {
-        this.props.unsubscribeUserList(this.eventHandler);
-    }
-
-    render() {
-        const { users } = this.props;
-        return (
-            <Grid container direction="column">
-                <Paper elevation={5}>
-                    <List>
-                        <Typography variant="subtitle2" align="center">Users</Typography>
-                    {
-                        Object.entries(users).map(([user, data]) => (
-                            <ListItem key={user}>
-                                <ListItemText>{ user }</ListItemText>
-                            </ListItem>
-                        ))
-                    }
-                    </List>
-                </Paper>
-            </Grid>
-        );
-    }
-
-    static mapState(state) {
-        return {
-            users: state.users
-        };
-    }
-
-    static mapDispatch(dispatch) {
-        return {
-            subscribeUserList: () => dispatch(userActions.subscribeUserList()),
-            unsubscribeUserList: (handle) => dispatch(userActions.unsubscribeUserList(handle))
-        };
-    }
-
-    static get propTypes() {
-        return {
-            classes: PropTypes.object.isRequired
+    useEffect(() => {
+        const eventHandler = subscribeUserList();
+        return () => {
+            unsubscribeUserList(eventHandler);
         }
-    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    },[]);
+
+    return (
+        <Grid container direction="column">
+            <Paper elevation={5}>
+                <List>
+                    <Typography variant="subtitle2" align="center">Users</Typography>
+                {
+                    Object.entries(users).map(([user, data]) => (
+                        <ListItem key={user}>
+                            <ListItemText>{ user }</ListItemText>
+                        </ListItem>
+                    ))
+                }
+                </List>
+            </Paper>
+        </Grid>
+    );
 }
+
+UserList.propTypes = {
+    classes: PropTypes.object.isRequired
+}
+
+function mapState(state) {
+    return {
+        users: state.users
+    };
+}
+
+function mapDispatch(dispatch) {
+    return {
+        subscribeUserList: () => dispatch(userActions.subscribeUserList()),
+        unsubscribeUserList: (handle) => dispatch(userActions.unsubscribeUserList(handle))
+    };
+}
+
 
 export default compose(
     withStyles(styles),
-    connect(UserList.mapState, UserList.mapDispatch)
+    connect(mapState, mapDispatch)
 )(UserList);
