@@ -10,12 +10,12 @@ function subscribeUserList() {
     };
 }
 
-function unsubscribeUserList(handler){
+function unsubscribeUserList(handle){
     return dispatch => {
         return dispatch({
             type: SOCKET_ACTIONS.UNSUBSCRIBE,
             event: ACTIONS.UPDATE_USER_LIST,
-            handler
+            handle
         });
     };
 }

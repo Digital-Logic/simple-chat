@@ -23,17 +23,15 @@ function socketMiddleware() {
                 dispatch({ type: `SUBSCRIBE ${event}`,
                     event,
                     handle: typeof handle === 'function' ? `function: ${handle.name}` : handle  });
-                // All events captured by socket.io will be dispatched through redux as
-                // type: SOCKET_IO_EVENT_RECEIVED
+                // All events captured by socket.io will be dispatched through redux
                 const onEvent = typeof handle === 'function' ? handle : defaultHandle(event);
                 socket.on(event, onEvent);
                 return onEvent;
 
             case ACTIONS.UNSUBSCRIBE:
-                dispatch({ type: `UNSUBSCRIBE ${event}`,
-                    event,
-                    handle: typeof handle === 'function' ? `function: ${handle.name}` : handle });
-                if (typeof handler !== 'function')
+                dispatch({ type: `UNSUBSCRIBE ${event}`, event });
+
+                if (typeof handle !== 'function')
                     throw new Error(`Unable to unsubscribe to ${event}, without a function reference.`);
                 // the handle must resolve to the same function that was used to register the event.
                 socket.removeListener(event,  handle);

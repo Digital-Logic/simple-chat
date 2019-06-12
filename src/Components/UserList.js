@@ -23,6 +23,7 @@ class UserList extends PureComponent {
 
     componentDidMount() {
         this.eventHandler = this.props.subscribeUserList();
+
     }
 
     componentWillUnmount() {
@@ -58,7 +59,7 @@ class UserList extends PureComponent {
     static mapDispatch(dispatch) {
         return {
             subscribeUserList: () => dispatch(userActions.subscribeUserList()),
-            unsubscribeUserList: () => dispatch(userActions.unsubscribeUserList())
+            unsubscribeUserList: (handle) => dispatch(userActions.unsubscribeUserList(handle))
         };
     }
 
