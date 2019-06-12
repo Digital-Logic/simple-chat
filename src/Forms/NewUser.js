@@ -41,7 +41,7 @@ class NewUser extends PureComponent {
         if (name === '' )
             return null;
 
-        if (available[name] && available[name].isValidating) {
+        if (available[name] && available[name].checkingAvailable) {
             return <Progress thickness={5} size={20} />;
         } else if (available[name] && available[name].available) {
             return  <CheckIcon style={{ color: '#00d000' }}/>;
