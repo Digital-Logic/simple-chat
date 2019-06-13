@@ -12,9 +12,10 @@ function create(server, options) {
         socket.room = 'general';
         socket.join(socket.room);
 
+
+
         socket.on('disconnect', () => {
             leaveRoom() && io.emit('UPDATE_ROOMS_LIST', Object.keys(rooms));
-
             delete(users[socket.userHandle]);
             socket.emit('LOGOUT_SUCCESS');
             updateUsers();
