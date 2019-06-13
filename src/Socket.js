@@ -9,11 +9,6 @@ function create(server, options) {
 
     io.on('connection', function(socket) {
 
-        socket.room = 'general';
-        socket.join(socket.room);
-
-
-
         socket.on('disconnect', () => {
             leaveRoom() && io.emit('UPDATE_ROOMS_LIST', Object.keys(rooms));
             delete(users[socket.userHandle]);
@@ -96,6 +91,7 @@ function create(server, options) {
 
         socket.on('LOG_OUT', () => {
             leaveRoom() && io.emit('UPDATE_ROOMS_LIST', Object.keys(rooms));
+            socket.room = '';
             delete users[socket.userHandle];
             updateUsers();
         });
