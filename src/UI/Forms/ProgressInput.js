@@ -24,6 +24,9 @@ const styles = theme => ({
         '&$disabled': {
         }
     },
+    inputContainer: {
+        flexGrow: 1
+    },
     checkContainer: {
         width: '30px',
         paddingLeft: '10px'
@@ -34,8 +37,8 @@ const styles = theme => ({
 function InputComponent({label, classes, value, onChange, errorMessage, asyncAction, ...props}) {
 
     return (
-        <Grid container alignItems="center" >
-            <Grid item>
+        <Grid container alignItems="center">
+            <Grid item className={classes.inputContainer}>
                 <FormControl fullWidth className={classes.root}>
                     <InputLabel>{ label }</InputLabel>
                         <Input

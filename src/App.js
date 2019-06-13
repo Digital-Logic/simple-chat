@@ -53,9 +53,13 @@ const styles = theme => ({
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '0 20px',
+        color: theme.palette.getContrastText(theme.palette.primary.dark),
         '& > span': {
             display: 'flex',
-            alignItems: 'center'
+            alignItems: 'center',
+        },
+        '& a': {
+            color: theme.palette.getContrastText(theme.palette.primary.dark),
         }
     },
     footerSpacer: {
@@ -148,7 +152,7 @@ function App({ setupListeners, isAuthenticated, dispatch,  subscribeToChat, unsu
                 ): null
             }
             <div className={classes.footer}>
-                <Typography variant="span">Source: <Button size="small">Github.com</Button></Typography>
+                <Typography variant="subtitle2">Source: <Button href="https://github.com/Digital-Logic/simple-chat" target="_blank" size="small">Github.com</Button></Typography>
                 <Button href="https://digital-logic.net/" target="_blank" size="small">digital-logic.net</Button>
             </div>
         </div>

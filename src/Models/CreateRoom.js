@@ -12,6 +12,9 @@ const styles = theme => ({
     buttons: {
         margin: '0 -12px',
         width: 'calc(100% + 24px)'
+    },
+    container: {
+        minWidth: '300px'
     }
 });
 
@@ -32,7 +35,7 @@ function CreateRoom({ classes, state, onClose, actions }) {
         <Fragment>
             <DialogTitle align="center">Create New Room</DialogTitle>
             <DialogContent>
-                <Form onSubmit={_onSubmit}>
+                <Form onSubmit={_onSubmit} className={classes.container}>
                     <Input
                         label="Room Name"
                         name="roomName"

@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import Paper from '@material-ui/core/Paper';
 import compose from 'recompose/compose';
 import List from '@material-ui/core/List';
 import Typography from '@material-ui/core/Typography';
@@ -8,7 +7,6 @@ import ListItemText from '@material-ui/core/ListItemText';
 import { connect } from 'react-redux';
 import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
-import Grid from '@material-ui/core/Grid';
 import ScrollPaper from './ScrollPaper';
 import { userActions } from '../Store';
 

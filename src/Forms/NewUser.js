@@ -57,7 +57,7 @@ class NewUser extends PureComponent {
         const { available } = this.props;
 
         return (
-            <Form onSubmit={this._onSubmit}>
+            <Form onSubmit={this._onSubmit} style={{ minWidth: '300px' }}>
                 <ProgressInput
                     label="Create Your Handle"
                     available={available[name]}
