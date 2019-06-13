@@ -43,6 +43,7 @@ function Rooms({ rooms, joinRoom, subscribeToJoinRoom, unsubscribeToJoinRoom, cu
         const joinRoomHandle = subscribeToJoinRoom();
         const roomUpdateHandle = subscribeToUpdateRoomsList();
 
+        joinRoom('general');
         updateRoomsList(); // get rooms list from server
         return () => {
             unsubscribeToJoinRoom(joinRoomHandle);
