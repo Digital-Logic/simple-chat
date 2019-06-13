@@ -1,5 +1,4 @@
-import React, { useEffect, useContext } from 'react';
-import Paper from '@material-ui/core/Paper';
+import React, { useEffect, useContext, useCallback } from 'react';
 import List from '@material-ui/core/List';
 import Typography from '@material-ui/core/Typography';
 import { ModelContext } from '../Models/withModelManager';
@@ -9,7 +8,6 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import { withStyles } from '@material-ui/core/styles';
-import Grid from '@material-ui/core/Grid';
 import { connect } from 'react-redux';
 import { authActions, chatActions } from '../Store';
 import RadioIcon from '@material-ui/icons/RadioButtonUnchecked';
@@ -46,8 +44,19 @@ function Rooms({ rooms, joinRoom, subscribeToJoinRoom, unsubscribeToJoinRoom, cu
         const roomUpdateHandle = subscribeToUpdateRoomsList();
 
         updateRoomsList(); // get rooms list from server
+        return () => {
+            unsubscribeToJoinRoom(joinRoomHandle);
+            unsubscribeToUpdateRoomsList(roomUpdateHandle);
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    },[]);
 
+    const onJoinRoom = useCallback(room => {
+        if (currentRoom.toLowerCase() !== room.toLowerCase())
+             joinRoom(room);
+     },[currentRoom, joinRoom]);
 
+    useEffect(() => {
         // Create model CREATE_ROOM
         createModel({
             key: 'CREATE_ROOM',
@@ -56,18 +65,13 @@ function Rooms({ rooms, joinRoom, subscribeToJoinRoom, unsubscribeToJoinRoom, cu
                 onClose: () => {},
                 onCancel: ({ setState, STATES }) => setState(STATES.CLOSED),
                 onSubmit: ({ setState, STATES, room }) => {
-                    joinRoom( room);
+                    onJoinRoom(room);
                     setState(STATES.CLOSED);
                 }
             }
         });
-
-        return () => {
-            unsubscribeToJoinRoom(joinRoomHandle);
-            unsubscribeToUpdateRoomsList(roomUpdateHandle);
-        };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    },[]);
+    },[onJoinRoom]);
 
     return (
         <ScrollPaper className={classes.paper}>
@@ -81,7 +85,7 @@ function Rooms({ rooms, joinRoom, subscribeToJoinRoom, unsubscribeToJoinRoom, cu
                         rooms.map(room => (
                             <ListItem
                                 key={room}
-                                onClick={() => joinRoom(room)}
+                                onClick={() => onJoinRoom(room)}
                                 button>
                                 <ListItemIcon>
                                 {
