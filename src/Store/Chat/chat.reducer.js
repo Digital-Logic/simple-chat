@@ -12,7 +12,7 @@ const ACTIONS = Object.freeze({
 
 const initialState = {
     messages: [],
-    rooms: []
+    rooms: {}
 };
 
 function reducer(state=initialState, { type, data }) {

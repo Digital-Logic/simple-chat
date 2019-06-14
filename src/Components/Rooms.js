@@ -83,7 +83,7 @@ function Rooms({ rooms, joinRoom, subscribeToJoinRoom, unsubscribeToJoinRoom, cu
                         align="center">Chat Rooms</Typography>
 
                     {
-                        rooms.map(room => (
+                        Object.entries(rooms).map(([room, count]) => (
                             <ListItem
                                 key={room}
                                 onClick={() => onJoinRoom(room)}
@@ -93,9 +93,13 @@ function Rooms({ rooms, joinRoom, subscribeToJoinRoom, unsubscribeToJoinRoom, cu
                                     room === currentRoom ? <RadioCheckedIcon /> : <RadioIcon />
                                 }
                                 </ListItemIcon>
-                                <ListItemText>{ room.split(' ')
+                                <ListItemText>
+                                { room.split(' ')
                                     .map( word => word[0].toUpperCase() + word.slice(1))
-                                    .join(' ') }</ListItemText>
+                                    .join(' ')
+                                }
+                                </ListItemText>
+                                <div>{ count }</div>
                             </ListItem>
                         ))
                     }
