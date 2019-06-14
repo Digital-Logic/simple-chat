@@ -1,7 +1,11 @@
 import socketIO from 'socket.io';
-
+const ROOMS = ['general', 'computers', 'cats & dogs'];
 const users = {};
-const rooms = { 'general': Infinity, 'computers': Infinity, 'cats & dogs': Infinity };
+
+const rooms = ROOMS.reduce((acc, cur) => {
+    acc[cur] = 0;
+    return acc;
+},{});
 
 function create(server, options) {
 
@@ -10,14 +14,15 @@ function create(server, options) {
     io.on('connection', function(socket) {
 
         socket.on('disconnect', () => {
-            leaveRoom() && io.emit('UPDATE_ROOMS_LIST', Object.keys(rooms));
+            leaveRoom();
+            updateRoomList();
             delete(users[socket.userHandle]);
             socket.emit('LOGOUT_SUCCESS');
             updateUsers();
         });
 
         socket.on('MESSAGE_SENT', ({ message }) => {
-            // Emit message to all clients in current room, including sender -- optimize this out later
+            // Emit message to all clients in current room, including sender
             io.to(socket.room).emit('MESSAGE_RECEIVED', {
                 user: socket.userHandle,
                 message
@@ -36,7 +41,6 @@ function create(server, options) {
                 users[user] = {};
                 socket.userHandle = user;
                 socket.emit('CREATE_USER_SUCCESS', user);
-
                 updateUsers();
             }
         });
@@ -47,7 +51,7 @@ function create(server, options) {
                 // decrement room counter for old room
                 --rooms[socket.room];
                 // No one is in the room, remove it
-                if (rooms[socket.room] === 0) {
+                if (!ROOMS.includes(socket.room) && rooms[socket.room] === 0) {
                     delete rooms[socket.room];
                     return true;
                 }
@@ -56,7 +60,6 @@ function create(server, options) {
         }
 
         socket.on('JOIN_ROOM_REQUEST', room => {
-            let updateClients = false;
 
             if (typeof room !== 'string' || room.trim() === '') {
                 socket.emit('JOIN_ROOM_FAILURE', `Invalid room name: ${room}`);
@@ -67,34 +70,35 @@ function create(server, options) {
             // create room key in rooms object
             if (!rooms[room]) {
                 rooms[room] = 0;
-                updateClients = true;
             }
             // Increment room counter
             ++rooms[room];
 
-            updateClients = leaveRoom() || updateClients;
+            leaveRoom();
 
             socket.room = room;
             socket.join(room);
 
             socket.emit('JOIN_ROOM_SUCCESS', room);
 
-            // has the rooms list changed? If so, update clients
-            if(updateClients) {
-                io.emit('UPDATE_ROOMS_LIST', Object.keys(rooms));
-            }
+            updateRoomList();
         });
 
         socket.on('UPDATE_ROOMS_LIST_REQUEST', () => {
-            socket.emit('UPDATE_ROOMS_LIST', Object.keys(rooms));
+            updateRoomList();
         });
 
         socket.on('LOG_OUT', () => {
-            leaveRoom() && io.emit('UPDATE_ROOMS_LIST', Object.keys(rooms));
+            leaveRoom();
+            updateRoomList;
             socket.room = '';
             delete users[socket.userHandle];
             updateUsers();
         });
+
+        function updateRoomList() {
+            io.emit('UPDATE_ROOMS_LIST', rooms);
+        }
 
         function updateUsers() {
             io.emit('UPDATE_USER_LIST', Object.keys(users));
