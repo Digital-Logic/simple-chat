@@ -1,8 +1,10 @@
 # Simple Chat
 
-### [Live Site: simple-chat.digital-logic.net](http://simple-chat.digital-logic.net/)
+### [Live Site](http://simple-chat.digital-logic.net/)
 
 Multi-room chat app, supports creation of custom chat-rooms. Integrates Socket.io with redux through redux middleware. Light / Dark themes.
+
+This project has two branches: front-end, back-end. If you want to run the chat app locally both are required.
 
 
 ### Commands
